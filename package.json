@@ -1,0 +1,14 @@
+{
+  "name": "pre-match",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Pre-match analysis tool for upcoming football matches",
+  "scripts": {
+    "dev": "pnpm --filter server dev",
+    "dev:server": "pnpm --filter server dev",
+    "dev:client": "pnpm --filter client dev",
+    "test": "pnpm --filter server test",
+    "lint": "pnpm -r lint"
+  },
+  "packageManager": "pnpm@11.3.0"
+}
