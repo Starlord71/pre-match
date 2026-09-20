@@ -4,7 +4,7 @@
 
 Pre-match analysis tool for upcoming football matches.
 
-> **Status:** the server side (phases 1-4 of the plan) is implemented and covered by tests; the web client is still the Vite scaffold (phase 5) and Docker packaging (phase 7) is pending.
+> **Status:** phases 1-5 of the plan are implemented and covered by tests; Docker packaging (phase 7) is pending.
 
 ## Overview
 
@@ -12,8 +12,9 @@ This monorepo holds the backend API and the web client of a tool that helps anal
 
 ## Current status
 
-- **Done (server):** Express API, SQLite with migrations and cache, football-data.org client with rate limiting, league sync (`POST /api/sync/:league`), the four-signal analysis engine (`GET /api/analysis`) and live match updates over Socket.io.
-- **In progress:** React client (responsive + i18n) and Docker packaging.
+- **Done (server):** Express API, SQLite with migrations and cache, football-data.org client with rate limiting, league sync (`POST /api/sync/:league`), the teams endpoint (`GET /api/teams?league=`), the current and next matchday (`GET /api/matches?league=`), the four-signal analysis engine (`GET /api/analysis`) and live match updates over Socket.io.
+- **Done (client):** React UI (responsive + ES/EN i18n) that lists a league's teams, shows the four signals as separate cards and follows live matches over Socket.io.
+- **Pending:** Docker packaging (phase 7).
 - **API reference:** see [`server/README.md`](server/README.md).
 
 ## Project structure
@@ -50,19 +51,22 @@ pnpm install
 cp .env.example .env
 # edit .env and fill in the required values
 
-# 3. Start the API in development mode
+# 3. Start the API and the client together in development mode
 pnpm dev
 ```
 
+`pnpm dev` runs both processes at once: the API on `http://localhost:3000` and the web client on `http://localhost:5173`. It is implemented with `concurrently -k`, so when one process exits the other is stopped too, avoiding orphan processes. Use the per-package scripts below to run only one of them.
+
 ## Root scripts
 
-| Script            | Description                          |
-| ----------------- | ------------------------------------ |
-| `pnpm dev`        | Start the server in watch mode       |
-| `pnpm dev:server` | Start the server in watch mode       |
-| `pnpm dev:client` | Start the client dev server (Vite)   |
-| `pnpm test`       | Run the server test suite            |
-| `pnpm lint`       | Lint every package                   |
+| Script                      | Description                                    |
+| --------------------------- | ---------------------------------------------- |
+| `pnpm dev`                  | Start the API and the client together          |
+| `pnpm dev:server`           | Start only the API (watch mode) on `:3000`     |
+| `pnpm dev:client`           | Start only the client dev server (Vite) on `:5173` |
+| `pnpm test`                 | Run the server test suite                      |
+| `pnpm --filter client test` | Run the client test suite                      |
+| `pnpm lint`                 | Lint every package                             |
 
 ## Environment variables
 

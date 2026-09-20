@@ -4,7 +4,7 @@
 
 Herramienta de análisis pre-partido para próximos partidos de fútbol.
 
-> **Estado:** el lado servidor (fases 1-4 del plan) está implementado y cubierto por tests; el cliente web sigue siendo el scaffold de Vite (fase 5) y el empaquetado Docker (fase 7) está pendiente.
+> **Estado:** las fases 1-5 del plan están implementadas y cubiertas por tests; el empaquetado Docker (fase 7) está pendiente.
 
 ## Descripción general
 
@@ -12,8 +12,9 @@ Este monorepo contiene la API backend y el cliente web de una herramienta que ay
 
 ## Estado actual
 
-- **Hecho (servidor):** API de Express, SQLite con migraciones y cache, cliente de football-data.org con rate limiting, sincronización de ligas (`POST /api/sync/:league`), el motor de análisis de cuatro señales (`GET /api/analysis`) y actualizaciones de partidos en vivo vía Socket.io.
-- **En progreso:** cliente en React (responsive + i18n) y empaquetado Docker.
+- **Hecho (servidor):** API de Express, SQLite con migraciones y cache, cliente de football-data.org con rate limiting, sincronización de ligas (`POST /api/sync/:league`), el endpoint de equipos (`GET /api/teams?league=`), la jornada actual y la próxima (`GET /api/matches?league=`), el motor de análisis de cuatro señales (`GET /api/analysis`) y actualizaciones de partidos en vivo vía Socket.io.
+- **Hecho (cliente):** UI en React (responsive + i18n ES/EN) que lista los equipos de una liga, muestra las cuatro señales como tarjetas separadas y sigue partidos en vivo vía Socket.io.
+- **Pendiente:** empaquetado Docker (fase 7).
 - **Referencia de la API:** consulta [`server/README.es.md`](server/README.es.md).
 
 ## Estructura del proyecto
@@ -50,19 +51,22 @@ pnpm install
 cp .env.example .env
 # edita .env y completa los valores necesarios
 
-# 3. Arrancar la API en modo desarrollo
+# 3. Arrancar la API y el cliente juntos en modo desarrollo
 pnpm dev
 ```
 
+`pnpm dev` levanta ambos procesos a la vez: la API en `http://localhost:3000` y el cliente web en `http://localhost:5173`. Está implementado con `concurrently -k`, así que cuando un proceso termina el otro también se detiene, evitando procesos huérfanos. Usa los scripts por paquete de abajo para arrancar solo uno de ellos.
+
 ## Scripts de la raíz
 
-| Script            | Descripción                          |
-| ----------------- | ------------------------------------ |
-| `pnpm dev`        | Arranca el servidor en modo watch    |
-| `pnpm dev:server` | Arranca el servidor en modo watch    |
-| `pnpm dev:client` | Arranca el dev server del cliente    |
-| `pnpm test`       | Ejecuta los tests del servidor       |
-| `pnpm lint`       | Ejecuta el lint en todos los paquetes |
+| Script                      | Descripción                                      |
+| --------------------------- | ------------------------------------------------ |
+| `pnpm dev`                  | Arranca la API y el cliente juntos               |
+| `pnpm dev:server`           | Arranca solo la API (modo watch) en `:3000`      |
+| `pnpm dev:client`           | Arranca solo el dev server del cliente (Vite) en `:5173` |
+| `pnpm test`                 | Ejecuta los tests del servidor                   |
+| `pnpm --filter client test` | Ejecuta los tests del cliente                    |
+| `pnpm lint`                 | Ejecuta el lint en todos los paquetes            |
 
 ## Variables de entorno
 

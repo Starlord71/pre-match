@@ -4,7 +4,7 @@
 
 API backend de la herramienta de análisis pre-partido.
 
-> **Estado:** fases 1-4 implementadas y cubiertas por tests: base de Express, SQLite con migraciones, cliente de football-data.org con rate limiting, el flujo de sync, el motor de análisis de cuatro señales y las actualizaciones de partidos en vivo vía Socket.io. El cliente en React (fase 5) y el empaquetado Docker (fase 7) siguen _WIP_.
+> **Estado:** fases 1-5 implementadas y cubiertas por tests: base de Express, SQLite con migraciones, cliente de football-data.org con rate limiting, el flujo de sync, el motor de análisis de cuatro señales, las actualizaciones de partidos en vivo vía Socket.io y los endpoints de equipos y partidos que consume el cliente en React. El empaquetado Docker (fase 7) sigue _WIP_.
 
 ## Stack tecnológico
 
@@ -58,10 +58,14 @@ server/
 │   │   └── env.js
 │   ├── routes/                   # Routers de Express
 │   │   ├── health.routes.js
+│   │   ├── teams.routes.js
+│   │   ├── matches.routes.js
 │   │   ├── sync.routes.js
 │   │   └── analysis.routes.js
 │   ├── controllers/              # Handlers de peticiones
 │   │   ├── health.controller.js
+│   │   ├── teams.controller.js
+│   │   ├── matches.controller.js
 │   │   ├── sync.controller.js
 │   │   └── analysis.controller.js
 │   ├── schemas/                  # Schemas de Zod (dominio + payloads externos)
@@ -104,6 +108,8 @@ URL base: `http://localhost:3000` (configurable vía `PORT`).
 | Método | Ruta                              | Descripción                          |
 | ------ | --------------------------------- | ------------------------------------ |
 | `GET`  | `/health`                         | Estado del servicio                  |
+| `GET`  | `/api/teams?league=`              | Equipos que jugaron en una liga      |
+| `GET`  | `/api/matches?league=`            | Jornada actual + próxima de la liga con sus partidos |
 | `POST` | `/api/sync/:league`               | Sincroniza una liga desde football-data |
 | `GET`  | `/api/analysis?home=&away=&date=` | Cuatro señales para un partido       |
 
@@ -114,6 +120,62 @@ URL base: `http://localhost:3000` (configurable vía `PORT`).
   "status": "ok",
   "uptime": 12.34,
   "timestamp": "2026-01-01T00:00:00.000Z"
+}
+```
+
+### `GET /api/teams?league=`
+
+`league` es uno de `PL`, `PD`, `BL1`, `SA`, `FL1`. Como `teams` no tiene columna de liga, la pertenencia se deriva con un join contra `matches`: se devuelve un equipo cuando jugó en cualquiera de los dos lados de al menos un partido almacenado de esa liga. Una liga no soportada o ausente devuelve `400`.
+
+```json
+{
+  "league": "PL",
+  "teams": [
+    {
+      "id": 57,
+      "name": "Arsenal FC",
+      "shortName": "Arsenal",
+      "tla": "ARS",
+      "crest": "https://crests.football-data.org/57.png",
+      "updatedAt": "2026-09-20T19:23:56.791Z"
+    }
+  ]
+}
+```
+
+### `GET /api/matches?league=`
+
+`league` es uno de `PL`, `PD`, `BL1`, `SA`, `FL1`. Devuelve la jornada **actual** de la liga (la última que ya empezó, así una jornada en curso conserva sus partidos jugados, en vivo y pendientes) y la **próxima**. Cada partido incluye sus `homeTeam` y `awayTeam`, de modo que una lista de partidos no necesita otra petición. `currentMatchday` es `null` antes de que arranque la temporada y `nextMatchday` es `null` cuando termina; `matchdays` solo contiene las jornadas que existen. Una liga no soportada o ausente devuelve `400`.
+
+```json
+{
+  "league": "PL",
+  "currentMatchday": 3,
+  "nextMatchday": 4,
+  "matchdays": [
+    {
+      "matchday": 3,
+      "matches": [
+        {
+          "id": 500,
+          "league": "PL",
+          "utcDate": "2026-09-20T19:30:00Z",
+          "status": "IN_PLAY",
+          "matchday": 3,
+          "winner": null,
+          "duration": "REGULAR",
+          "fullTimeHome": 1,
+          "fullTimeAway": 0,
+          "halfTimeHome": 1,
+          "halfTimeAway": 0,
+          "updatedAt": "2026-09-20T19:45:00.000Z",
+          "homeTeam": { "id": 57, "name": "Arsenal FC", "shortName": "Arsenal", "tla": "ARS", "crest": "https://crests.football-data.org/57.png" },
+          "awayTeam": { "id": 61, "name": "Chelsea FC", "shortName": "Chelsea", "tla": "CHE", "crest": "https://crests.football-data.org/61.png" }
+        }
+      ]
+    },
+    { "matchday": 4, "matches": [] }
+  ]
 }
 ```
 

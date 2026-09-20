@@ -4,7 +4,7 @@
 
 Backend API for the pre-match analysis tool.
 
-> **Status:** phases 1-4 implemented and covered by tests: Express base, SQLite with migrations, football-data.org client with rate limiting, the sync flow, the four-signal analysis engine and real-time match updates over Socket.io. The React client (phase 5) and Docker packaging (phase 7) are still _WIP_.
+> **Status:** phases 1-5 implemented and covered by tests: Express base, SQLite with migrations, football-data.org client with rate limiting, the sync flow, the four-signal analysis engine, real-time match updates over Socket.io and the teams and matches endpoints consumed by the React client. Docker packaging (phase 7) is still _WIP_.
 
 ## Tech stack
 
@@ -58,10 +58,14 @@ server/
 │   │   └── env.js
 │   ├── routes/                   # Express routers
 │   │   ├── health.routes.js
+│   │   ├── teams.routes.js
+│   │   ├── matches.routes.js
 │   │   ├── sync.routes.js
 │   │   └── analysis.routes.js
 │   ├── controllers/              # Request handlers
 │   │   ├── health.controller.js
+│   │   ├── teams.controller.js
+│   │   ├── matches.controller.js
 │   │   ├── sync.controller.js
 │   │   └── analysis.controller.js
 │   ├── schemas/                  # Zod schemas (domain model + external payloads)
@@ -104,6 +108,8 @@ Base URL: `http://localhost:3000` (configurable via `PORT`).
 | Method | Path                                   | Description                        |
 | ------ | -------------------------------------- | ---------------------------------- |
 | `GET`  | `/health`                              | Service health status              |
+| `GET`  | `/api/teams?league=`                   | Teams that played in a league      |
+| `GET`  | `/api/matches?league=`                 | League current + next matchday with their matches |
 | `POST` | `/api/sync/:league`                    | Sync one league from football-data |
 | `GET`  | `/api/analysis?home=&away=&date=`      | Four signals for a fixture         |
 
@@ -114,6 +120,62 @@ Base URL: `http://localhost:3000` (configurable via `PORT`).
   "status": "ok",
   "uptime": 12.34,
   "timestamp": "2026-01-01T00:00:00.000Z"
+}
+```
+
+### `GET /api/teams?league=`
+
+`league` is one of `PL`, `PD`, `BL1`, `SA`, `FL1`. Because `teams` has no league column, membership is derived by joining against `matches`: a team is returned when it played on either side of at least one stored match in that league. An unsupported or missing league returns `400`.
+
+```json
+{
+  "league": "PL",
+  "teams": [
+    {
+      "id": 57,
+      "name": "Arsenal FC",
+      "shortName": "Arsenal",
+      "tla": "ARS",
+      "crest": "https://crests.football-data.org/57.png",
+      "updatedAt": "2026-09-20T19:23:56.791Z"
+    }
+  ]
+}
+```
+
+### `GET /api/matches?league=`
+
+`league` is one of `PL`, `PD`, `BL1`, `SA`, `FL1`. Returns the league's **current** matchday (the latest one that already kicked off, so an in-progress matchday keeps its played, live and remaining fixtures) and the **next** one. Each match embeds its `homeTeam` and `awayTeam`, so a fixture list needs no extra request. `currentMatchday` is `null` before the season starts and `nextMatchday` is `null` once it is over; `matchdays` only contains the matchdays that exist. An unsupported or missing league returns `400`.
+
+```json
+{
+  "league": "PL",
+  "currentMatchday": 3,
+  "nextMatchday": 4,
+  "matchdays": [
+    {
+      "matchday": 3,
+      "matches": [
+        {
+          "id": 500,
+          "league": "PL",
+          "utcDate": "2026-09-20T19:30:00Z",
+          "status": "IN_PLAY",
+          "matchday": 3,
+          "winner": null,
+          "duration": "REGULAR",
+          "fullTimeHome": 1,
+          "fullTimeAway": 0,
+          "halfTimeHome": 1,
+          "halfTimeAway": 0,
+          "updatedAt": "2026-09-20T19:45:00.000Z",
+          "homeTeam": { "id": 57, "name": "Arsenal FC", "shortName": "Arsenal", "tla": "ARS", "crest": "https://crests.football-data.org/57.png" },
+          "awayTeam": { "id": 61, "name": "Chelsea FC", "shortName": "Chelsea", "tla": "CHE", "crest": "https://crests.football-data.org/61.png" }
+        }
+      ]
+    },
+    { "matchday": 4, "matches": [] }
+  ]
 }
 ```
 
