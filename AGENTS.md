@@ -5,9 +5,11 @@
 Always use pnpm (pinned to 11.3.0 via `packageManager`), never npm/yarn.
 
 - Install: `pnpm install` (from root)
-- Dev API: `pnpm dev` (alias `pnpm dev:server`)
-- Dev client: `pnpm dev:client`
+- Dev (both): `pnpm dev` (runs API + client together via `concurrently -k`)
+- Dev API only: `pnpm dev:server`
+- Dev client only: `pnpm dev:client`
 - Tests: `pnpm test` (runs only the `server` suite)
+- Client tests: `pnpm --filter client test`
 - Single test file: `pnpm --filter server exec vitest run <path>`
 - Lint all: `pnpm lint` (server runs `node --check src/server.js` only, not a real linter; client runs Oxlint)
 

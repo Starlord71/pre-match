@@ -4,11 +4,14 @@
   "private": true,
   "description": "Pre-match analysis tool for upcoming football matches",
   "scripts": {
-    "dev": "pnpm --filter server dev",
+    "dev": "concurrently -k -n server,client -c blue,green \"pnpm --filter server dev\" \"pnpm --filter client dev\"",
     "dev:server": "pnpm --filter server dev",
     "dev:client": "pnpm --filter client dev",
     "test": "pnpm --filter server test",
     "lint": "pnpm -r lint"
   },
-  "packageManager": "pnpm@11.3.0"
+  "packageManager": "pnpm@11.3.0",
+  "devDependencies": {
+    "concurrently": "^10.0.5"
+  }
 }
