@@ -1,0 +1,32 @@
+.analysis-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.analysis-page__back {
+  align-self: flex-start;
+}
+
+.analysis-page__vs {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.analysis-page__note {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.analysis-page__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.25rem;
+}
+
+@media (max-width: 640px) {
+  .analysis-page__grid {
+    grid-template-columns: 1fr;
+  }
+}
