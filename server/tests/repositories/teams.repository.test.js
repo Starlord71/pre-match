@@ -13,6 +13,26 @@ process.env.DB_PATH = path.join(tempDir, 'test.sqlite');
 
 const { migrate, closeDb } = await import('../../src/db/db.js');
 const teamsRepository = await import('../../src/repositories/teams.repository.js');
+const matchesRepository = await import('../../src/repositories/matches.repository.js');
+
+function baseMatch(overrides = {}) {
+  return {
+    id: 100,
+    league: 'PL',
+    utcDate: '2026-01-10T15:00:00Z',
+    status: 'SCHEDULED',
+    matchday: 20,
+    homeTeamId: 1,
+    awayTeamId: 2,
+    winner: null,
+    duration: null,
+    fullTimeHome: null,
+    fullTimeAway: null,
+    halfTimeHome: null,
+    halfTimeAway: null,
+    ...overrides,
+  };
+}
 
 describe('teams.repository', () => {
   beforeAll(() => {
@@ -87,5 +107,26 @@ describe('teams.repository', () => {
 
     expect(names).toEqual(sorted);
     expect(names.length).toBe(teamsRepository.count());
+  });
+
+  it('lists the distinct teams that played in a league, ordered by name', () => {
+    matchesRepository.upsertMany([
+      baseMatch({ id: 100, league: 'PL', homeTeamId: 1, awayTeamId: 2 }),
+      baseMatch({ id: 101, league: 'PL', homeTeamId: 2, awayTeamId: 10 }),
+      baseMatch({ id: 102, league: 'PD', homeTeamId: 11, awayTeamId: 1 }),
+    ]);
+
+    expect(teamsRepository.findByLeague('PL').map((team) => team.id)).toEqual([1, 2, 10]);
+    expect(teamsRepository.findByLeague('PD').map((team) => team.id)).toEqual([1, 11]);
+  });
+
+  it('does not duplicate a team that played several matches in the same league', () => {
+    const teams = teamsRepository.findByLeague('PL');
+
+    expect(teams.filter((team) => team.id === 2)).toHaveLength(1);
+  });
+
+  it('returns an empty array for a league with no stored matches', () => {
+    expect(teamsRepository.findByLeague('FL1')).toEqual([]);
   });
 });

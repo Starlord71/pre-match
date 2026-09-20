@@ -103,6 +103,30 @@ export function findAll() {
 }
 
 /**
+ * Lists the distinct teams that appear in a league's stored matches.
+ *
+ * The `teams` table has no league column, so membership is derived by joining
+ * against `matches`: a team belongs to a league when it played on either side
+ * of at least one match in that league.
+ * @param {string} league League code.
+ * @returns {object[]} Plain team objects ordered by name.
+ */
+export function findByLeague(league) {
+  return getDb()
+    .prepare(
+      `SELECT t.* FROM teams t
+       WHERE EXISTS (
+         SELECT 1 FROM matches m
+         WHERE m.league = ?
+           AND (m.home_team_id = t.id OR m.away_team_id = t.id)
+       )
+       ORDER BY t.name`,
+    )
+    .all(league)
+    .map(toPlain);
+}
+
+/**
  * Counts stored teams.
  * @returns {number} Number of rows.
  */

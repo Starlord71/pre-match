@@ -149,4 +149,75 @@ describe('matches.repository', () => {
       matchesRepository.findByKickoffRange('2030-01-01T00:00:00.000Z', '2030-01-02T00:00:00.000Z'),
     ).toEqual([]);
   });
+
+  it('lists a league matches with their teams embedded, ordered by kickoff', () => {
+    const matches = matchesRepository.findByLeagueWithTeams('PL');
+
+    expect(matches.map((match) => match.id)).toEqual([100, 201, 200, 400, 401, 402]);
+    expect(matches.map((match) => match.utcDate)).toEqual(
+      [...matches.map((match) => match.utcDate)].sort(),
+    );
+    expect(matches[0].homeTeam).toMatchObject({ id: 1, name: 'Home FC' });
+    expect(matches[0].awayTeam).toMatchObject({ id: 2, name: 'Away FC' });
+  });
+
+  it('only returns matches from the requested league in findByLeagueWithTeams', () => {
+    expect(matchesRepository.findByLeagueWithTeams('PD').map((match) => match.id)).toEqual([300]);
+  });
+
+  it('honours the optional kickoff range in findByLeagueWithTeams', () => {
+    const ids = matchesRepository
+      .findByLeagueWithTeams('PL', {
+        from: '2026-01-15T00:00:00.000Z',
+        to: '2026-02-01T23:59:59.000Z',
+      })
+      .map((match) => match.id);
+
+    expect(ids).toEqual([201, 200]);
+  });
+
+  it('honours the optional matchdays filter in findByLeagueWithTeams', () => {
+    matchesRepository.upsertMany([
+      baseMatch({ id: 500, league: 'BL1', matchday: 1, utcDate: '2026-01-05T15:00:00Z' }),
+      baseMatch({ id: 501, league: 'BL1', matchday: 2, utcDate: '2026-01-12T15:00:00Z' }),
+      baseMatch({ id: 502, league: 'BL1', matchday: 2, utcDate: '2026-01-14T15:00:00Z' }),
+      baseMatch({ id: 503, league: 'BL1', matchday: 3, utcDate: '2026-01-19T15:00:00Z' }),
+    ]);
+
+    expect(matchesRepository.findByLeagueWithTeams('BL1', { matchdays: [2] }).map((m) => m.id)).toEqual([
+      501, 502,
+    ]);
+    expect(
+      matchesRepository.findByLeagueWithTeams('BL1', { matchdays: [1, 3] }).map((m) => m.id),
+    ).toEqual([500, 503]);
+  });
+
+  it('finds the current matchday (latest started) and the next one', () => {
+    // Latest kickoff <= now is matchday 2 (2026-01-12), so next is 3.
+    expect(matchesRepository.findMatchdayBounds('BL1', '2026-01-13T00:00:00.000Z')).toEqual({
+      current: 2,
+      next: 3,
+    });
+  });
+
+  it('returns a null current matchday before the season starts', () => {
+    expect(matchesRepository.findMatchdayBounds('BL1', '2025-12-01T00:00:00.000Z')).toEqual({
+      current: null,
+      next: 1,
+    });
+  });
+
+  it('returns a null next matchday once the season is over', () => {
+    expect(matchesRepository.findMatchdayBounds('BL1', '2027-01-01T00:00:00.000Z')).toEqual({
+      current: 3,
+      next: null,
+    });
+  });
+
+  it('returns both bounds as null for a league with no matches', () => {
+    expect(matchesRepository.findMatchdayBounds('FL1', '2026-01-13T00:00:00.000Z')).toEqual({
+      current: null,
+      next: null,
+    });
+  });
 });

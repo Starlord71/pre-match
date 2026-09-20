@@ -113,6 +113,127 @@ export function findByLeague(league) {
 }
 
 /**
+ * Lists a league's matches with their two teams embedded, optionally bounded by
+ * an inclusive kickoff range and/or a set of matchdays.
+ *
+ * Unlike `findByLeague`, the home/away teams are joined and returned nested, so
+ * the client can render a fixture list without a second request.
+ * @param {string} league League code.
+ * @param {object} [filters] Optional filters.
+ * @param {string} [filters.from] Inclusive lower kickoff bound (ISO date).
+ * @param {string} [filters.to] Inclusive upper kickoff bound (ISO date).
+ * @param {number[]} [filters.matchdays] Matchdays to include.
+ * @returns {object[]} Plain match objects ordered by kickoff date.
+ */
+export function findByLeagueWithTeams(league, { from, to, matchdays } = {}) {
+  const conditions = ['m.league = ?'];
+  const params = [league];
+
+  if (from) {
+    conditions.push('m.utc_date >= ?');
+    params.push(from);
+  }
+  if (to) {
+    conditions.push('m.utc_date <= ?');
+    params.push(to);
+  }
+  if (matchdays && matchdays.length > 0) {
+    conditions.push(`m.matchday IN (${matchdays.map(() => '?').join(', ')})`);
+    params.push(...matchdays);
+  }
+
+  return getDb()
+    .prepare(
+      `SELECT
+         m.id, m.league, m.utc_date, m.status, m.matchday,
+         m.winner, m.duration,
+         m.full_time_home, m.full_time_away, m.half_time_home, m.half_time_away,
+         m.updated_at,
+         ht.id AS home_team_id, ht.name AS home_team_name,
+         ht.short_name AS home_team_short_name, ht.tla AS home_team_tla, ht.crest AS home_team_crest,
+         at.id AS away_team_id, at.name AS away_team_name,
+         at.short_name AS away_team_short_name, at.tla AS away_team_tla, at.crest AS away_team_crest
+       FROM matches m
+       JOIN teams ht ON ht.id = m.home_team_id
+       JOIN teams at ON at.id = m.away_team_id
+       WHERE ${conditions.join(' AND ')}
+       ORDER BY m.utc_date ASC`,
+    )
+    .all(...params)
+    .map((row) => ({
+      id: row.id,
+      league: row.league,
+      utcDate: row.utc_date,
+      status: row.status,
+      matchday: row.matchday,
+      winner: row.winner,
+      duration: row.duration,
+      fullTimeHome: row.full_time_home,
+      fullTimeAway: row.full_time_away,
+      halfTimeHome: row.half_time_home,
+      halfTimeAway: row.half_time_away,
+      updatedAt: row.updated_at,
+      homeTeam: {
+        id: row.home_team_id,
+        name: row.home_team_name,
+        shortName: row.home_team_short_name,
+        tla: row.home_team_tla,
+        crest: row.home_team_crest,
+      },
+      awayTeam: {
+        id: row.away_team_id,
+        name: row.away_team_name,
+        shortName: row.away_team_short_name,
+        tla: row.away_team_tla,
+        crest: row.away_team_crest,
+      },
+    }));
+}
+
+/**
+ * Finds the matchday currently in focus and the one after it.
+ *
+ * The current matchday is the one of the latest match that already kicked off
+ * (`utc_date <= nowIso`), so an in-progress matchday is shown with its played,
+ * live and remaining fixtures. It is null before the season starts, and the
+ * next matchday is null once the season is over.
+ * @param {string} league League code.
+ * @param {string} nowIso Reference instant (ISO date).
+ * @returns {{current: number|null, next: number|null}} Adjacent matchdays.
+ */
+export function findMatchdayBounds(league, nowIso) {
+  const db = getDb();
+
+  const started = db
+    .prepare(
+      `SELECT matchday FROM matches
+       WHERE league = ? AND matchday IS NOT NULL AND utc_date <= ?
+       ORDER BY utc_date DESC, matchday DESC
+       LIMIT 1`,
+    )
+    .get(league, nowIso);
+
+  const current = started?.matchday ?? null;
+
+  const upcoming =
+    current === null
+      ? db
+          .prepare(
+            `SELECT MIN(matchday) AS matchday FROM matches
+             WHERE league = ? AND matchday IS NOT NULL`,
+          )
+          .get(league)
+      : db
+          .prepare(
+            `SELECT MIN(matchday) AS matchday FROM matches
+             WHERE league = ? AND matchday IS NOT NULL AND matchday > ?`,
+          )
+          .get(league, current);
+
+  return { current, next: upcoming?.matchday ?? null };
+}
+
+/**
  * Lists matches involving any of the given teams on either side.
  * @param {number[]} teamIds Team ids.
  * @returns {object[]} Plain match objects ordered by kickoff date.

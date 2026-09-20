@@ -2,6 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
 import healthRoutes from './routes/health.routes.js';
+import teamsRoutes from './routes/teams.routes.js';
+import matchesRoutes from './routes/matches.routes.js';
 import syncRoutes from './routes/sync.routes.js';
 import analysisRoutes from './routes/analysis.routes.js';
 
@@ -19,6 +21,8 @@ export function createApp() {
   app.use(morgan('dev'));
 
   app.use('/health', healthRoutes);
+  app.use('/api/teams', teamsRoutes);
+  app.use('/api/matches', matchesRoutes);
   app.use('/api/sync', syncRoutes);
   app.use('/api/analysis', analysisRoutes);
 
