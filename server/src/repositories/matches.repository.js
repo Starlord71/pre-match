@@ -113,6 +113,25 @@ export function findByLeague(league) {
 }
 
 /**
+ * Lists matches involving any of the given teams on either side.
+ * @param {number[]} teamIds Team ids.
+ * @returns {object[]} Plain match objects ordered by kickoff date.
+ */
+export function findByTeams(teamIds) {
+  if (!teamIds || teamIds.length === 0) return [];
+
+  const placeholders = teamIds.map(() => '?').join(', ');
+  return getDb()
+    .prepare(
+      `SELECT * FROM matches
+       WHERE home_team_id IN (${placeholders}) OR away_team_id IN (${placeholders})
+       ORDER BY utc_date`,
+    )
+    .all(...teamIds, ...teamIds)
+    .map(toPlain);
+}
+
+/**
  * Counts stored matches, optionally scoped to a league.
  * @param {string} [league] League code.
  * @returns {number} Number of rows.

@@ -114,4 +114,25 @@ describe('matches.repository', () => {
       matchesRepository.count('PL') + matchesRepository.count('PD'),
     );
   });
+
+  it('finds matches involving any of the given teams on either side', () => {
+    teamsRepository.upsertMany([
+      { id: 3, name: 'Third FC' },
+      { id: 4, name: 'Fourth FC' },
+    ]);
+    matchesRepository.upsertMany([
+      baseMatch({ id: 400, homeTeamId: 1, awayTeamId: 3, utcDate: '2026-03-01T12:00:00Z' }),
+      baseMatch({ id: 401, homeTeamId: 3, awayTeamId: 2, utcDate: '2026-03-02T12:00:00Z' }),
+      baseMatch({ id: 402, homeTeamId: 3, awayTeamId: 4, utcDate: '2026-03-03T12:00:00Z' }),
+    ]);
+
+    const ids = matchesRepository.findByTeams([1, 2]).map((match) => match.id);
+
+    expect(ids).toEqual(expect.arrayContaining([100, 400, 401]));
+    expect(ids).not.toContain(402);
+  });
+
+  it('returns an empty list when no team ids are given', () => {
+    expect(matchesRepository.findByTeams([])).toEqual([]);
+  });
 });

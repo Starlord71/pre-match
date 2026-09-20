@@ -3,6 +3,7 @@ import cors from 'cors';
 import morgan from 'morgan';
 import healthRoutes from './routes/health.routes.js';
 import syncRoutes from './routes/sync.routes.js';
+import analysisRoutes from './routes/analysis.routes.js';
 
 /**
  * Builds and configures the Express application.
@@ -19,6 +20,7 @@ export function createApp() {
 
   app.use('/health', healthRoutes);
   app.use('/api/sync', syncRoutes);
+  app.use('/api/analysis', analysisRoutes);
 
   app.use((_req, res) => {
     res.status(404).json({ error: 'Not Found' });
