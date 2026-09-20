@@ -1,0 +1,128 @@
+{
+  "app": {
+    "title": "Pre-match",
+    "tagline": "Pre-match analysis for the five major leagues",
+    "footer": "Pre-match · analysis signals never merged into a single result"
+  },
+  "languages": {
+    "es": "Español",
+    "en": "English"
+  },
+  "language": {
+    "switcherLabel": "Select language",
+    "changeTo": "Change language to {{language}}",
+    "current": "Current language: {{language}}"
+  },
+  "leagues": {
+    "PL": "Premier League",
+    "PD": "La Liga",
+    "BL1": "Bundesliga",
+    "SA": "Serie A",
+    "FL1": "Ligue 1"
+  },
+  "explorer": {
+    "title": "Pick a league and two teams",
+    "subtitle": "Choose a competition and two teams to see the analysis.",
+    "leagueLabel": "League",
+    "leaguePlaceholder": "Select a league",
+    "homeLabel": "Home team",
+    "awayLabel": "Away team",
+    "teamPlaceholder": "Select a team",
+    "analyze": "View analysis",
+    "sync": "Refresh data",
+    "syncing": "Refreshing…",
+    "syncDone": "Data refreshed: {{teams}} teams and {{matches}} matches.",
+    "loadingTeams": "Loading teams…",
+    "errorTeams": "We could not load the teams.",
+    "emptyTeams": "There are no teams for this league yet.",
+    "hintSelectTwo": "Pick two different teams to continue.",
+    "sameTeam": "The teams must be different."
+  },
+  "analysis": {
+    "title": "Match analysis",
+    "back": "Back",
+    "vs": "vs",
+    "loading": "Computing the signals…",
+    "error": "We could not compute the analysis.",
+    "signalsNote": "Each signal is shown separately; they are never merged into a single result."
+  },
+  "form": {
+    "title": "Recent form",
+    "subtitle": "Weighted performance: more recent matches weigh more.",
+    "score": "Form index",
+    "matchesAnalyzed": "Matches analyzed",
+    "noData": "Not enough finished matches.",
+    "result": {
+      "W": "W",
+      "D": "D",
+      "L": "L"
+    }
+  },
+  "homeAway": {
+    "title": "Home vs away",
+    "subtitle": "Each team's performance in its venue for this match.",
+    "homeVenue": "At home",
+    "awayVenue": "Away",
+    "played": "Matches",
+    "record": "Won / Drawn / Lost",
+    "pointsPerGame": "Points per game",
+    "goalsFor": "Goals for",
+    "goalsAgainst": "Goals against",
+    "goalDifference": "Goal difference",
+    "noData": "No matches in this venue."
+  },
+  "h2h": {
+    "title": "Head-to-head",
+    "subtitle": "Previous meetings between the two teams.",
+    "matchesAnalyzed": "Meetings",
+    "minimum": "Minimum required",
+    "insufficient": "Insufficient data: {{matches}} of the {{minimum}} required meetings are on record.",
+    "wins": "{{team}} wins",
+    "draws": "Draws",
+    "goals": "{{team}} goals"
+  },
+  "schedule": {
+    "title": "Schedule congestion",
+    "subtitle": "Matches played in the {{days}} days before kickoff.",
+    "matchesInWindow": "Matches in the window",
+    "congested": "Congested schedule",
+    "notCongested": "Normal schedule",
+    "daysSinceLast": "Days since the last match",
+    "noPrevious": "No previous matches in the window.",
+    "noData": "No schedule data."
+  },
+  "live": {
+    "title": "Live tracking",
+    "subtitle": "Pick a league and follow the current and next matchday.",
+    "matchday": "Matchday {{matchday}}",
+    "matchdayNext": "Next · Matchday {{matchday}}",
+    "follow": "Follow",
+    "following": "Following",
+    "empty": "There are no matchdays loaded for this league.",
+    "loading": "Loading matches…",
+    "error": "We could not load the matches.",
+    "watchingCount_one": "Following {{count}} match",
+    "watchingCount_other": "Following {{count}} matches",
+    "kickoff": "Kickoff",
+    "selectLeague": "Select a league to see its matches.",
+    "badge": "Live",
+    "status": "Status",
+    "score": "Score"
+  },
+  "status": {
+    "SCHEDULED": "Scheduled",
+    "TIMED": "Scheduled",
+    "IN_PLAY": "In play",
+    "PAUSED": "Half time",
+    "FINISHED": "Finished",
+    "SUSPENDED": "Suspended",
+    "POSTPONED": "Postponed",
+    "CANCELLED": "Cancelled",
+    "AWARDED": "Awarded"
+  },
+  "common": {
+    "loading": "Loading…",
+    "error": "Something went wrong.",
+    "retry": "Retry"
+  }
+}
