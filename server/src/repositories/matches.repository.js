@@ -132,6 +132,20 @@ export function findByTeams(teamIds) {
 }
 
 /**
+ * Lists matches whose kickoff falls inside an inclusive date range.
+ * Used by the live poller to find matches currently inside their live window.
+ * @param {string} fromIso Inclusive lower bound (ISO date).
+ * @param {string} toIso Inclusive upper bound (ISO date).
+ * @returns {object[]} Plain match objects ordered by kickoff date.
+ */
+export function findByKickoffRange(fromIso, toIso) {
+  return getDb()
+    .prepare('SELECT * FROM matches WHERE utc_date >= ? AND utc_date <= ? ORDER BY utc_date')
+    .all(fromIso, toIso)
+    .map(toPlain);
+}
+
+/**
  * Counts stored matches, optionally scoped to a league.
  * @param {string} [league] League code.
  * @returns {number} Number of rows.

@@ -4,11 +4,17 @@
 
 Pre-match analysis tool for upcoming football matches.
 
-> **Status:** early development. This README describes the current state of the project; anything not built yet is marked as _WIP_.
+> **Status:** the server side (phases 1-4 of the plan) is implemented and covered by tests; the web client is still the Vite scaffold (phase 5) and Docker packaging (phase 7) is pending.
 
 ## Overview
 
 This monorepo holds the backend API and the web client of a tool that helps analyze football matches before they are played.
+
+## Current status
+
+- **Done (server):** Express API, SQLite with migrations and cache, football-data.org client with rate limiting, league sync (`POST /api/sync/:league`), the four-signal analysis engine (`GET /api/analysis`) and live match updates over Socket.io.
+- **In progress:** React client (responsive + i18n) and Docker packaging.
+- **API reference:** see [`server/README.md`](server/README.md).
 
 ## Project structure
 

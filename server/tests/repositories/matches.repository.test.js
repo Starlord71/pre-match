@@ -135,4 +135,18 @@ describe('matches.repository', () => {
   it('returns an empty list when no team ids are given', () => {
     expect(matchesRepository.findByTeams([])).toEqual([]);
   });
+
+  it('lists matches whose kickoff falls inside a date range', () => {
+    const ids = matchesRepository
+      .findByKickoffRange('2026-02-01T00:00:00.000Z', '2026-02-01T23:59:59.000Z')
+      .map((match) => match.id);
+
+    expect(ids).toEqual([200]);
+  });
+
+  it('returns an empty list when no kickoff falls inside the range', () => {
+    expect(
+      matchesRepository.findByKickoffRange('2030-01-01T00:00:00.000Z', '2030-01-02T00:00:00.000Z'),
+    ).toEqual([]);
+  });
 });
