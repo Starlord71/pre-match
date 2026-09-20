@@ -46,15 +46,18 @@ const matchdaysPayload = {
  * Integration flows: several layers mounted together, with mocks only at the
  * external edge (the API services).
  */
+async function selectTeam(user, label, teamName) {
+  const input = screen.getByLabelText(label)
+  await user.click(input)
+  await user.type(input, teamName)
+  await user.click(screen.getByRole('option', { name: teamName }))
+}
+
 async function selectFixture(user) {
   await user.selectOptions(screen.getByLabelText('Liga'), 'PL')
-  await waitFor(() =>
-    expect(
-      within(screen.getByLabelText('Equipo local')).getByRole('option', { name: 'Home United' }),
-    ).toBeInTheDocument(),
-  )
-  await user.selectOptions(screen.getByLabelText('Equipo local'), '1')
-  await user.selectOptions(screen.getByLabelText('Equipo visitante'), '2')
+  await waitFor(() => expect(screen.getByLabelText('Equipo local')).not.toBeDisabled())
+  await selectTeam(user, 'Equipo local', 'Home United')
+  await selectTeam(user, 'Equipo visitante', 'Away City')
 }
 
 describe('integration flows', () => {

@@ -4,7 +4,7 @@
 
 Web client for the pre-match analysis tool.
 
-> **Status:** phases 1-5 implemented. The UI is responsive (mobile-first), bilingual (ES/EN with instant switching), consumes the API through pure service wrappers and hooks, renders the four analysis signals as separate cards and lists a league's current and next matchday, following several matches live over Socket.io. Docker packaging (phase 7) is pending.
+> **Status:** phases 1-5 implemented. The UI is responsive (mobile-first), bilingual (ES/EN with instant switching), consumes the API through pure service wrappers and hooks, renders the four analysis signals as separate cards and lists a league's current matchday, with a toggle to the next one, following several matches live over Socket.io. Docker packaging (phase 7) is pending.
 
 ## Tech stack
 
@@ -59,9 +59,13 @@ client/
 
 Components never call `fetch`/`socket.io-client` directly: pages orchestrate hooks, hooks consume services, and services build the requests. This keeps every layer testable in isolation.
 
+## Explorer
+
+The explorer form picks a league and two teams. The league uses a native select; both teams use a searchable selector built on `react-select`, so long team lists can be filtered by typing with full keyboard and screen-reader support.
+
 ## Live tracking
 
-The explorer's live panel lists the selected league's **current matchday** (the latest one that already started, so its played, live and remaining fixtures are all shown) and the **next** one, each headed by the matchday number and its date range. Inside a matchday, fixtures are grouped by calendar day and ordered by kickoff. The league comes from the explorer selector, so the panel has no selector of its own; changing league remounts it and clears the followed matches. Any number of matches can be followed at once, and their status and score update over Socket.io without a reload.
+The explorer's live panel shows the selected league's **current matchday** by default (the latest one that already started, so its played, live and remaining fixtures are all shown), headed by the matchday number and its date range. A **View next matchday** button swaps the list to the next matchday and back. Inside a matchday, fixtures are grouped by calendar day and ordered by kickoff, and each card highlights the score. The league comes from the explorer selector, so the panel has no selector of its own; changing league remounts it and clears the followed matches. Any number of matches can be followed at once, and their status and score update over Socket.io without a reload.
 
 ## Configuration
 

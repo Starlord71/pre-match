@@ -36,6 +36,7 @@
     "errorTeams": "No pudimos cargar los equipos.",
     "emptyTeams": "Todavía no hay equipos para esta liga.",
     "hintSelectTwo": "Elegí dos equipos distintos para continuar.",
+    "noResults": "Sin coincidencias.",
     "sameTeam": "Los equipos deben ser distintos."
   },
   "analysis": {
@@ -93,9 +94,10 @@
   },
   "live": {
     "title": "Seguimiento en vivo",
-    "subtitle": "Elegí una liga y seguí la jornada actual y la próxima.",
+    "subtitle": "Elegí una liga y seguí la jornada actual. Pasá a la próxima cuando quieras.",
     "matchday": "Jornada {{matchday}}",
-    "matchdayNext": "Próxima · Jornada {{matchday}}",
+    "viewNext": "Ver próxima jornada",
+    "viewCurrent": "Ver jornada actual",
     "follow": "Seguir",
     "following": "Siguiendo",
     "empty": "No hay jornadas cargadas para esta liga.",

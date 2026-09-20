@@ -138,6 +138,17 @@ h3 {
   color: var(--text-strong);
 }
 
+.button--secondary {
+  background: color-mix(in srgb, var(--accent) 16%, var(--surface));
+  border-color: color-mix(in srgb, var(--accent) 38%, var(--border));
+  color: var(--text-strong);
+}
+
+.button--secondary:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent) 24%, var(--surface));
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
+}
+
 .field {
   display: flex;
   flex-direction: column;

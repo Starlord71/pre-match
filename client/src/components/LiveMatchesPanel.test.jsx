@@ -59,11 +59,12 @@ describe('LiveMatchesPanel', () => {
     getMatches.mockResolvedValue(payload)
   })
 
-  it('renders the current and next matchday, split into ordered days', async () => {
+  it('shows only the current matchday, split into ordered days', async () => {
     render(<LiveMatchesPanel league="PL" />)
 
     await waitFor(() => expect(screen.getByRole('heading', { name: /Jornada 5/ })).toBeInTheDocument())
-    expect(screen.getByRole('heading', { name: /Jornada 6/ })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: /Jornada 6/ })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Ver próxima jornada' })).toBeInTheDocument()
 
     const current = groupByHeading(/Jornada 5/)
     expect(within(current).getByText(/·/)).toBeInTheDocument()
@@ -76,6 +77,24 @@ describe('LiveMatchesPanel', () => {
     expect(rows[2]).toContain('Liverpool')
 
     expect(within(current).getAllByRole('heading', { level: 4 }).length).toBeGreaterThan(0)
+  })
+
+  it('switches to the next matchday and back with the toggle', async () => {
+    const user = userEvent.setup()
+    render(<LiveMatchesPanel league="PL" />)
+
+    await waitFor(() => expect(screen.getByRole('heading', { name: /Jornada 5/ })).toBeInTheDocument())
+
+    await user.click(screen.getByRole('button', { name: 'Ver próxima jornada' }))
+
+    expect(screen.queryByRole('heading', { name: /Jornada 5/ })).not.toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /Jornada 6/ })).toBeInTheDocument()
+    expect(screen.getByText('Arsenal')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Ver jornada actual' }))
+
+    expect(screen.getByRole('heading', { name: /Jornada 5/ })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: /Jornada 6/ })).not.toBeInTheDocument()
   })
 
   it('shows the empty state when the league has no matchdays', async () => {

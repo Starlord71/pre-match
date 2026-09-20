@@ -8,12 +8,13 @@ import LiveIndicator from './LiveIndicator.jsx'
 import './LiveMatchesPanel.css'
 
 /**
- * Lists a league's current and next matchday and lets the user follow any
- * number of matches at once.
+ * Lists a league's current matchday and lets the user follow any number of
+ * matches at once. A toggle swaps the visible list to the next matchday.
  *
  * Data comes from `useMatches`; live updates come from `useLiveMatches`, which
- * hides the socket client. Each matchday is split into its calendar days and
- * ordered by kickoff. The component only owns the followed-ids set.
+ * hides the socket client. The visible matchday is split into its calendar days
+ * and ordered by kickoff. The component owns the followed-ids set and the
+ * current/next view state.
  * @param {object} props Component props.
  * @param {string} props.league Currently selected league code.
  * @returns {JSX.Element} The live matches panel.
@@ -22,6 +23,7 @@ function LiveMatchesPanel({ league }) {
   const { t, i18n } = useTranslation()
   const { matchdays, currentMatchday, nextMatchday, loading, error } = useMatches(league || null)
   const [followedIds, setFollowedIds] = useState(() => new Set())
+  const [view, setView] = useState('current')
   const updatesById = useLiveMatches([...followedIds])
 
   function toggleFollow(id) {
@@ -37,12 +39,13 @@ function LiveMatchesPanel({ league }) {
     ...entry,
     matches: entry.matches.map((match) => ({ ...match, ...(updatesById[match.id] ?? {}) })),
   }))
+  const hasCurrent = currentMatchday !== null
+  const visibleMatchday = view === 'next' || !hasCurrent ? nextMatchday : currentMatchday
+  const visibleGroups = groups.filter((entry) => entry.matchday === visibleMatchday)
   const hasMatches = groups.some((entry) => entry.matches.length > 0)
+  const canToggle = hasCurrent && nextMatchday !== null
 
   function matchdayTitle(entry) {
-    if (currentMatchday !== null && entry.matchday === nextMatchday) {
-      return t('live.matchdayNext', { matchday: entry.matchday })
-    }
     return t('live.matchday', { matchday: entry.matchday })
   }
 
@@ -58,12 +61,12 @@ function LiveMatchesPanel({ league }) {
             <span className="live-match__vs">{t('analysis.vs')}</span>
             <span className="live-match__team">{match.awayTeam?.name ?? match.awayTeamId}</span>
           </p>
+          {hasScore ? (
+            <span className="live-match__score">{`${match.fullTimeHome} – ${match.fullTimeAway}`}</span>
+          ) : null}
           <p className="live-match__meta">
             <span>{`${t('live.kickoff')}: ${new Date(match.utcDate).toLocaleTimeString()}`}</span>
             <span>{t(`status.${match.status}`, { defaultValue: match.status })}</span>
-            {hasScore ? (
-              <span className="live-match__score">{`${match.fullTimeHome} – ${match.fullTimeAway}`}</span>
-            ) : null}
           </p>
         </div>
 
@@ -91,6 +94,18 @@ function LiveMatchesPanel({ league }) {
         <p className="live-matches__subtitle">{t('live.subtitle')}</p>
       </header>
 
+      {canToggle ? (
+        <div className="live-matches__nav">
+          <button
+            type="button"
+            className="button button--secondary"
+            onClick={() => setView((previous) => (previous === 'next' ? 'current' : 'next'))}
+          >
+            {view === 'next' ? t('live.viewCurrent') : t('live.viewNext')}
+          </button>
+        </div>
+      ) : null}
+
       {!league ? <p className="live-matches__note">{t('live.selectLeague')}</p> : null}
       {league && loading ? <p className="live-matches__note">{t('live.loading')}</p> : null}
       {league && error ? (
@@ -103,7 +118,7 @@ function LiveMatchesPanel({ league }) {
         <p className="live-matches__watching">{t('live.watchingCount', { count: followedIds.size })}</p>
       ) : null}
 
-      {groups.map((entry) => {
+      {visibleGroups.map((entry) => {
         const range = formatDayRange(entry.matches, i18n.language)
 
         return (

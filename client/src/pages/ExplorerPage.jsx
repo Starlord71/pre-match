@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useTeams } from '../hooks/useTeams.js'
 import { syncLeague } from '../services/sync.service.js'
 import { SUPPORTED_LEAGUES } from '../constants/leagues.js'
 import SelectField from '../components/SelectField.jsx'
+import TeamSelect from '../components/TeamSelect.jsx'
 import LiveMatchesPanel from '../components/LiveMatchesPanel.jsx'
 import './ExplorerPage.css'
 
@@ -26,7 +27,10 @@ function ExplorerPage({ onAnalyze }) {
 
   const { teams, loading, error, refresh } = useTeams(league || null)
 
-  const teamOptions = teams.map((team) => ({ value: String(team.id), label: team.name }))
+  const teamOptions = useMemo(
+    () => teams.map((team) => ({ value: String(team.id), label: team.name })),
+    [teams],
+  )
   const sameTeam = Boolean(homeId) && homeId === awayId
   const canAnalyze = Boolean(homeId && awayId) && !sameTeam
 
@@ -80,7 +84,7 @@ function ExplorerPage({ onAnalyze }) {
         />
 
         <div className="explorer__teams">
-          <SelectField
+          <TeamSelect
             id="home-team"
             label={t('explorer.homeLabel')}
             value={homeId}
@@ -89,7 +93,7 @@ function ExplorerPage({ onAnalyze }) {
             options={teamOptions}
             disabled={!league || loading}
           />
-          <SelectField
+          <TeamSelect
             id="away-team"
             label={t('explorer.awayLabel')}
             value={awayId}
@@ -121,7 +125,7 @@ function ExplorerPage({ onAnalyze }) {
           </button>
           <button
             type="button"
-            className="button button--ghost"
+            className="button button--secondary"
             onClick={handleSync}
             disabled={!league || syncing}
           >

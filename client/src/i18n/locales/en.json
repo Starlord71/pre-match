@@ -36,6 +36,7 @@
     "errorTeams": "We could not load the teams.",
     "emptyTeams": "There are no teams for this league yet.",
     "hintSelectTwo": "Pick two different teams to continue.",
+    "noResults": "No matches.",
     "sameTeam": "The teams must be different."
   },
   "analysis": {
@@ -93,9 +94,10 @@
   },
   "live": {
     "title": "Live tracking",
-    "subtitle": "Pick a league and follow the current and next matchday.",
+    "subtitle": "Pick a league and follow the current matchday. Switch to the next one anytime.",
     "matchday": "Matchday {{matchday}}",
-    "matchdayNext": "Next · Matchday {{matchday}}",
+    "viewNext": "View next matchday",
+    "viewCurrent": "View current matchday",
     "follow": "Follow",
     "following": "Following",
     "empty": "There are no matchdays loaded for this league.",

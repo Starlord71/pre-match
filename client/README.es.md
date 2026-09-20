@@ -4,7 +4,7 @@
 
 Cliente web de la herramienta de análisis pre-partido.
 
-> **Estado:** fases 1-5 implementadas. La UI es responsive (mobile-first), bilingüe (ES/EN con cambio instantáneo), consume la API mediante wrappers de servicios puros y hooks, renderiza las cuatro señales de análisis como tarjetas separadas y lista la jornada actual y la próxima de una liga, siguiendo varios partidos en vivo vía Socket.io. El empaquetado Docker (fase 7) sigue pendiente.
+> **Estado:** fases 1-5 implementadas. La UI es responsive (mobile-first), bilingüe (ES/EN con cambio instantáneo), consume la API mediante wrappers de servicios puros y hooks, renderiza las cuatro señales de análisis como tarjetas separadas y lista la jornada actual de una liga, con un botón para pasar a la próxima, siguiendo varios partidos en vivo vía Socket.io. El empaquetado Docker (fase 7) sigue pendiente.
 
 ## Stack tecnológico
 
@@ -59,9 +59,13 @@ client/
 
 Los componentes nunca llaman a `fetch`/`socket.io-client` directamente: las páginas orquestan hooks, los hooks consumen services y los services construyen las peticiones. Así cada capa se testea de forma aislada.
 
+## Explorador
+
+El formulario del explorador elige una liga y dos equipos. La liga usa un select nativo; los equipos usan un selector buscable construido sobre `react-select`, así las listas largas de equipos se filtran al escribir con soporte completo de teclado y lectores de pantalla.
+
 ## Seguimiento en vivo
 
-El panel en vivo del explorador lista la **jornada actual** de la liga seleccionada (la última que ya empezó, así se ven sus partidos jugados, en vivo y pendientes) y la **próxima**, cada una encabezada por el número de jornada y su rango de fechas. Dentro de cada jornada, los partidos se agrupan por día calendario y se ordenan por hora. La liga proviene del selector del explorador, así que el panel no tiene selector propio; cambiar de liga lo remonta y limpia los partidos seguidos. Se pueden seguir tantos partidos como se quiera, y su estado y marcador se actualizan vía Socket.io sin recargar.
+El panel en vivo del explorador muestra por defecto la **jornada actual** de la liga seleccionada (la última que ya empezó, así se ven sus partidos jugados, en vivo y pendientes), encabezada por el número de jornada y su rango de fechas. Un botón **Ver próxima jornada** cambia la lista a la próxima y permite volver. Dentro de cada jornada, los partidos se agrupan por día calendario y se ordenan por hora, y cada tarjeta destaca el marcador. La liga proviene del selector del explorador, así que el panel no tiene selector propio; cambiar de liga lo remonta y limpia los partidos seguidos. Se pueden seguir tantos partidos como se quiera, y su estado y marcador se actualizan vía Socket.io sin recargar.
 
 ## Configuración
 
