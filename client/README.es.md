@@ -53,9 +53,12 @@ client/
     ├── utils/            # Helpers puros (agrupación por jornada y formato de fechas)
     ├── i18n/             # Config de i18next + locales es/en
     ├── constants/        # Ligas soportadas
-    ├── test/             # Setup de tests, fixtures y flujos de integración
+    ├── test/             # Setup de tests y fixtures compartidas
+    ├── __tests__/        # Flujos de integración (Vitest + Testing Library)
     └── assets/           # Imágenes e iconos
 ```
+
+Los tests unitarios viven en carpetas `__tests__/` junto a cada módulo (`components/__tests__`, `hooks/__tests__`, `services/__tests__`, `utils/__tests__`, `i18n/__tests__`).
 
 Los componentes nunca llaman a `fetch`/`socket.io-client` directamente: las páginas orquestan hooks, los hooks consumen services y los services construyen las peticiones. Así cada capa se testea de forma aislada.
 

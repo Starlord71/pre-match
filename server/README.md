@@ -94,10 +94,12 @@ server/
 │   ├── external/                 # football-data.org client + rate limiter
 │   │   ├── footballData.client.js
 │   │   └── rateLimiter.js
-│   └── sockets/                  # Socket.io handlers
-│       └── liveMatches.socket.js
-└── tests/                        # Unit + integration tests (Vitest/Supertest)
+│   ├── sockets/                  # Socket.io handlers
+│   │   └── liveMatches.socket.js
+│   └── test/                     # Shared test fixtures
 ```
+
+Tests live in `__tests__/` folders co-located with each module (`routes/__tests__`, `services/__tests__`, `services/analysisEngine/__tests__`, `repositories/__tests__`, `sockets/__tests__`, `external/__tests__`).
 
 `app.js` is kept separate from `server.js` so the Express app can be imported in tests without opening a network port.
 
@@ -279,7 +281,7 @@ Defined with Zod in `src/schemas/`:
 
 ## Testing
 
-Tests are written with Vitest and Supertest. Place test files next to the code or in a `__tests__` folder; run them with:
+Tests are written with Vitest and Supertest and live in `__tests__/` folders next to each module, with shared fixtures under `src/test/fixtures/`. Run them with:
 
 ```bash
 pnpm test

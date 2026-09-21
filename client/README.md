@@ -53,9 +53,12 @@ client/
     ├── utils/            # Pure helpers (matchday grouping and date formatting)
     ├── i18n/             # i18next config + es/en locales
     ├── constants/        # Supported leagues
-    ├── test/             # Test setup, fixtures and integration flows
+    ├── test/             # Test setup and shared fixtures
+    ├── __tests__/        # Integration flows (Vitest + Testing Library)
     └── assets/           # Images and icons
 ```
+
+Unit tests live in `__tests__/` folders next to each module (`components/__tests__`, `hooks/__tests__`, `services/__tests__`, `utils/__tests__`, `i18n/__tests__`).
 
 Components never call `fetch`/`socket.io-client` directly: pages orchestrate hooks, hooks consume services, and services build the requests. This keeps every layer testable in isolation.
 
