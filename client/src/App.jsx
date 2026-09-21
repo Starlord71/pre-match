@@ -1,121 +1,61 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
+import { Routes, Route, Navigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import Header from './components/Header.jsx'
+import ExplorerPage from './pages/ExplorerPage.jsx'
+import AnalysisPage from './pages/AnalysisPage.jsx'
+import FavoriteTeamModal from './components/FavoriteTeamModal.jsx'
+import FavoriteLiveWatcher from './components/FavoriteLiveWatcher.jsx'
+import DemoDataBanner from './components/DemoDataBanner.jsx'
+import { FavoriteTeamProvider, useFavoriteTeam } from './hooks/useFavoriteTeam.js'
 import './App.css'
 
-function App() {
-  const [count, setCount] = useState(0)
+/**
+ * App shell: header, active route, footer, the favorite-team modal and its
+ * live watcher.
+ *
+ * Routing lives in the URL so a refresh keeps the current view. The favorite
+ * team is an optional extra layered on top of that, not a route: it opens as
+ * a modal from the header and never changes what `/` shows.
+ * `FavoriteLiveWatcher` renders nothing but is mounted here (not inside a
+ * specific page) so the favorite team's match is auto-followed regardless of
+ * which route is active. A separate component from `App` only so it can read
+ * `useFavoriteTeam()` from inside the provider that wraps it.
+ * @returns {JSX.Element} The app shell.
+ */
+function AppShell() {
+  const { t } = useTranslation()
+  const { modalOpen, closeModal } = useFavoriteTeam()
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div className="app-shell">
+      <DemoDataBanner />
+      <Header />
 
-      <div className="ticks"></div>
+      <main className="app-main">
+        <Routes>
+          <Route path="/" element={<ExplorerPage />} />
+          <Route path="/match/:league/:homeId/:awayId" element={<AnalysisPage />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </main>
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+      <footer className="app-footer">{t('app.footer')}</footer>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+      {modalOpen ? <FavoriteTeamModal onClose={closeModal} /> : null}
+      <FavoriteLiveWatcher />
+    </div>
+  )
+}
+
+/**
+ * Wraps the app shell with the favorite-team provider.
+ * @returns {JSX.Element} The application.
+ */
+function App() {
+  return (
+    <FavoriteTeamProvider>
+      <AppShell />
+    </FavoriteTeamProvider>
   )
 }
 

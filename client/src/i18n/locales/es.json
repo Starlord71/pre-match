@@ -1,0 +1,159 @@
+{
+  "app": {
+    "title": "Pre-match",
+    "tagline": "Análisis previo a los partidos de las cinco grandes ligas",
+    "footer": "Pre-match · señales de análisis que nunca se combinan en un único resultado"
+  },
+  "languages": {
+    "es": "Español",
+    "en": "English"
+  },
+  "language": {
+    "switcherLabel": "Seleccionar idioma",
+    "changeTo": "Cambiar idioma a {{language}}",
+    "current": "Idioma actual: {{language}}"
+  },
+  "leagues": {
+    "PL": "Premier League",
+    "PD": "La Liga",
+    "BL1": "Bundesliga",
+    "SA": "Serie A",
+    "FL1": "Ligue 1"
+  },
+  "explorer": {
+    "title": "Elegí la liga y los equipos",
+    "subtitle": "Seleccioná una competición y dos equipos para ver el análisis.",
+    "leagueLabel": "Liga",
+    "leaguePlaceholder": "Seleccioná una liga",
+    "homeLabel": "Equipo local",
+    "awayLabel": "Equipo visitante",
+    "teamPlaceholder": "Seleccioná un equipo",
+    "analyze": "Ver análisis",
+    "sync": "Actualizar datos",
+    "syncing": "Actualizando…",
+    "syncDone": "Datos actualizados: {{teams}} equipos y {{matches}} partidos.",
+    "loadingTeams": "Cargando equipos…",
+    "errorTeams": "No pudimos cargar los equipos.",
+    "emptyTeams": "Todavía no hay equipos para esta liga.",
+    "hintSelectTwo": "Elegí dos equipos distintos para continuar.",
+    "noResults": "Sin coincidencias.",
+    "sameTeam": "Los equipos deben ser distintos."
+  },
+  "analysis": {
+    "title": "Análisis del partido",
+    "back": "Volver",
+    "vs": "vs",
+    "loading": "Calculando las señales…",
+    "error": "No pudimos calcular el análisis.",
+    "signalsNote": "Cada señal se muestra por separado; nunca se combinan en un único resultado.",
+    "noFixture": "No hay un partido programado entre estos equipos en las ligas soportadas.",
+    "notFound": "No encontramos esos equipos en esta liga."
+  },
+  "form": {
+    "title": "Forma reciente",
+    "subtitle": "Rendimiento ponderado: los partidos más recientes pesan más.",
+    "score": "Índice de forma",
+    "matchesAnalyzed": "Partidos analizados",
+    "noData": "Sin partidos finalizados suficientes.",
+    "result": {
+      "W": "G",
+      "D": "E",
+      "L": "P"
+    }
+  },
+  "homeAway": {
+    "title": "Local vs visitante",
+    "subtitle": "Estadísticas de toda la temporada de cada equipo jugando de local o de visitante — no es el historial entre estos dos equipos.",
+    "homeVenue": "Como local",
+    "awayVenue": "Como visitante",
+    "played": "Partidos",
+    "record": "Ganados / Empatados / Perdidos",
+    "pointsPerGame": "Puntos por partido",
+    "goalsFor": "Goles a favor",
+    "goalsAgainst": "Goles en contra",
+    "goalDifference": "Diferencia de gol",
+    "noData": "Sin partidos en esta condición.",
+    "tablePosition": "Posición en la tabla",
+    "positionValue": "{{position}}.º de {{total}}",
+    "noStanding": "Sin datos de tabla"
+  },
+  "schedule": {
+    "title": "Congestión de calendario",
+    "subtitle": "Partidos jugados en los {{days}} días previos al encuentro.",
+    "matchesInWindow": "Partidos en la ventana",
+    "congested": "Calendario cargado",
+    "notCongested": "Calendario normal",
+    "daysSinceLast": "Días desde el último partido",
+    "noPrevious": "Sin partidos previos en la ventana.",
+    "noData": "Sin datos de calendario."
+  },
+  "live": {
+    "title": "Seguimiento en vivo",
+    "subtitle": "Elegí una liga y seguí la jornada actual. Pasá a la próxima cuando quieras.",
+    "matchday": "Jornada {{matchday}}",
+    "viewNext": "Ver próxima jornada",
+    "viewCurrent": "Ver jornada actual",
+    "follow": "Seguir",
+    "following": "Siguiendo",
+    "empty": "No hay jornadas cargadas para esta liga.",
+    "loading": "Cargando partidos…",
+    "error": "No pudimos cargar los partidos.",
+    "watchingCount_one": "Siguiendo {{count}} partido",
+    "watchingCount_other": "Siguiendo {{count}} partidos",
+    "kickoff": "Hora",
+    "selectLeague": "Seleccioná una liga para ver sus partidos.",
+    "badge": "En vivo",
+    "status": "Estado",
+    "score": "Marcador",
+    "upcoming": "Arranca el {{date}}",
+    "noRecentUpdate": "Sin novedades recientes.",
+    "notifyMe": "Avisarme de los cambios",
+    "notifyMeOn": "Avisos activados"
+  },
+  "favorite": {
+    "title": "Equipo favorito",
+    "subtitle": "Elegí un equipo y seguí todos sus partidos, jugados y por jugar.",
+    "leagueLabel": "Liga",
+    "leaguePlaceholder": "Seleccioná una liga",
+    "teamLabel": "Equipo",
+    "teamPlaceholder": "Seleccioná un equipo",
+    "save": "Guardar como favorito",
+    "change": "Cambiar equipo",
+    "cancel": "Cancelar",
+    "none": "Todavía no elegiste un equipo favorito.",
+    "loadingTeams": "Cargando equipos…",
+    "errorTeams": "No pudimos cargar los equipos.",
+    "emptyTeams": "Todavía no hay equipos para esta liga.",
+    "matchesTitle": "Partidos de {{team}}",
+    "loading": "Cargando partidos…",
+    "error": "No pudimos cargar los partidos.",
+    "empty": "No hay partidos cargados para este equipo.",
+    "linkLabel": "Equipo favorito",
+    "headerLabel": "Favorito",
+    "close": "Cerrar",
+    "hint": "Elegí tu equipo favorito para seguir todos sus partidos.",
+    "hintDismiss": "Cerrar aviso",
+    "nextMatch": "Próximo partido de {{team}}",
+    "liveNow": "¡{{team}} está jugando ahora!"
+  },
+  "status": {
+    "SCHEDULED": "Programado",
+    "TIMED": "Programado",
+    "IN_PLAY": "En juego",
+    "PAUSED": "Entretiempo",
+    "FINISHED": "Finalizado",
+    "SUSPENDED": "Suspendido",
+    "POSTPONED": "Postergado",
+    "CANCELLED": "Cancelado",
+    "AWARDED": "Otorgado"
+  },
+  "common": {
+    "loading": "Cargando…",
+    "error": "Ocurrió un error.",
+    "retry": "Reintentar"
+  },
+  "demo": {
+    "banner": "Estás viendo datos generados automáticamente. Configurá tu propia API key gratuita de",
+    "dismiss": "Cerrar aviso"
+  }
+}

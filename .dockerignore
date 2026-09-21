@@ -1,0 +1,30 @@
+# Dependencies and build output are reinstalled inside the image.
+node_modules
+**/node_modules
+client/dist
+**/dist
+
+# Local SQLite data must never enter the build context.
+*.sqlite
+*.sqlite-journal
+*.sqlite-wal
+*.sqlite-shm
+
+# Local environments and secrets.
+.env
+**/.env
+.env.*
+!.env.example
+
+# Repository and tooling noise.
+.git
+.gitignore
+coverage
+**/coverage
+*.log
+.DS_Store
+
+# Docs and root markdown are not needed to build or run.
+docs
+README.md
+README.es.md

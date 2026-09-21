@@ -1,0 +1,100 @@
+.field .team-select__control {
+  min-height: 0;
+  padding: 0.15rem 0.35rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  box-shadow: none;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.field .team-select__control:hover {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+}
+
+.field .team-select__control--is-focused,
+.field .team-select__control--menu-is-open {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+.field .team-select__control--is-disabled {
+  background: var(--surface-muted);
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.field .team-select__value-container {
+  padding: 0.35rem 0.4rem;
+}
+
+.field .team-select__single-value,
+.field .team-select__input-container {
+  color: var(--text-strong);
+  font-size: 0.92rem;
+}
+
+.field .team-select__placeholder {
+  color: var(--text-muted);
+  font-size: 0.92rem;
+}
+
+.field .team-select__indicator-separator {
+  background: var(--border);
+}
+
+.field .team-select__dropdown-indicator,
+.field .team-select__clear-indicator {
+  padding: 0.35rem;
+  color: var(--text-muted);
+}
+
+.field .team-select__dropdown-indicator:hover,
+.field .team-select__clear-indicator:hover {
+  color: var(--text-strong);
+}
+
+.field .team-select__menu {
+  margin-top: 0.25rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+  overflow: hidden;
+  z-index: 20;
+}
+
+.field .team-select__menu-list {
+  padding: 0.25rem;
+  max-height: 15rem;
+}
+
+.field .team-select__option {
+  padding: 0.5rem 0.65rem;
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: 0.92rem;
+  cursor: pointer;
+}
+
+.field .team-select__option--is-focused {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--text-strong);
+}
+
+.field .team-select__option--is-selected,
+.field .team-select__option--is-selected.team-select__option--is-focused {
+  background: var(--accent);
+  color: var(--accent-contrast);
+}
+
+.field .team-select__option--is-disabled {
+  color: var(--text-muted);
+}
+
+.field .team-select__menu-notice {
+  color: var(--text-muted);
+  font-size: 0.88rem;
+}
