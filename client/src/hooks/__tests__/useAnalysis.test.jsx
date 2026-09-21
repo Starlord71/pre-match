@@ -26,6 +26,14 @@ describe('useAnalysis', () => {
     await waitFor(() => expect(result.current.analysis).not.toBeNull())
   })
 
+  it('forwards league to getAnalysis when given', async () => {
+    getAnalysis.mockResolvedValue(analysisFixture)
+
+    renderHook(() => useAnalysis({ home: 1, away: 2, league: 'PL' }))
+
+    expect(getAnalysis).toHaveBeenCalledWith({ home: 1, away: 2, date: undefined, league: 'PL' })
+  })
+
   it('fetches the fixture and exposes the analysis', async () => {
     getAnalysis.mockResolvedValue(analysisFixture)
 

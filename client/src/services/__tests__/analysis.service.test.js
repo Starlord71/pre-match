@@ -26,6 +26,17 @@ describe('analysis.service', () => {
     )
   })
 
+  it('includes league in the query string when given', async () => {
+    fetch.mockResolvedValue(jsonResponse({ form: {}, homeAway: {}, schedule: {}, standings: null }))
+
+    await getAnalysis({ home: 1, away: 2, date: '2026-04-01T15:00:00Z', league: 'PL' })
+
+    expect(fetch).toHaveBeenCalledWith(
+      `${API_BASE_URL}/api/analysis?home=1&away=2&date=2026-04-01T15%3A00%3A00Z&league=PL`,
+      expect.any(Object),
+    )
+  })
+
   it('returns the parsed analysis body unchanged', async () => {
     const analysis = { homeTeamId: 1, awayTeamId: 2, form: { home: {} } }
     fetch.mockResolvedValue(jsonResponse(analysis))

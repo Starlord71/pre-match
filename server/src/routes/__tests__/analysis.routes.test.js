@@ -114,4 +114,33 @@ describe('GET /api/analysis', () => {
     expect(response.body.form.home.weightedScore).toBeNull();
     expect(response.body.schedule.home.matchesInWindow).toBe(0);
   });
+
+  it('returns a null standings when no league is given', async () => {
+    const response = await supertest(app).get(
+      `/api/analysis?home=1&away=2&date=${encodeURIComponent(DATE)}`,
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.body.standings).toBeNull();
+  });
+
+  it('returns each team table position when a league is given', async () => {
+    const response = await supertest(app).get(
+      `/api/analysis?home=1&away=2&date=${encodeURIComponent(DATE)}&league=PL`,
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.body.standings.home).toMatchObject({ teamId: 1 });
+    expect(response.body.standings.away).toMatchObject({ teamId: 2 });
+    expect(response.body.standings.home.position).toBeGreaterThanOrEqual(1);
+  });
+
+  it('returns 400 when league is not a supported competition code', async () => {
+    const response = await supertest(app).get(
+      `/api/analysis?home=1&away=2&date=${encodeURIComponent(DATE)}&league=XX`,
+    );
+
+    expect(response.status).toBe(400);
+    expect(response.body).toHaveProperty('error');
+  });
 });

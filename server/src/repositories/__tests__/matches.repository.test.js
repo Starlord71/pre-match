@@ -136,6 +136,17 @@ describe('matches.repository', () => {
     expect(matchesRepository.findByTeams([])).toEqual([]);
   });
 
+  it('restricts findByTeams to a league when one is given', () => {
+    // Match 300 (league PD, teams 1 & 2) was seeded above by the "counts matches
+    // scoped to a league" test; it must only show up under its own league.
+    const plIds = matchesRepository.findByTeams([1, 2], 'PL').map((match) => match.id);
+    const pdIds = matchesRepository.findByTeams([1, 2], 'PD').map((match) => match.id);
+
+    expect(plIds).toEqual(expect.arrayContaining([100, 400, 401]));
+    expect(plIds).not.toContain(300);
+    expect(pdIds).toEqual([300]);
+  });
+
   it('lists matches whose kickoff falls inside a date range', () => {
     const ids = matchesRepository
       .findByKickoffRange('2026-02-01T00:00:00.000Z', '2026-02-01T23:59:59.000Z')

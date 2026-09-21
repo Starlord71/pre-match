@@ -104,6 +104,10 @@ export const analysisFixture = {
       matches: [],
     },
   },
+  standings: {
+    home: { teamId: 1, position: 3, totalTeams: 20, points: 23 },
+    away: { teamId: 2, position: 15, totalTeams: 20, points: 12 },
+  },
 }
 
 /** Same fixture but the analyzed match has not been played yet. */

@@ -22,6 +22,19 @@ describe('FormCard', () => {
     expect(screen.getAllByText('P')).toHaveLength(2)
   })
 
+  it('shows the oldest of the analyzed matches first and the most recent last', () => {
+    render(<FormCard form={analysisFixture.form} homeTeam={homeTeam} awayTeam={awayTeam} />)
+
+    const homePills = screen
+      .getByText('Home United')
+      .closest('.form-row')
+      .querySelectorAll('.result-pill')
+
+    // analysisFixture.form.home.results: matchId 41 is the most recent (W), then
+    // 40 (D), then 39 is the oldest of the three (L) — pills must render oldest first.
+    expect([...homePills].map((pill) => pill.textContent)).toEqual(['P', 'E', 'G'])
+  })
+
   it('shows an explicit empty state when there is no finished history', () => {
     const form = {
       home: { matchesAnalyzed: 0, weightedScore: null, results: [] },

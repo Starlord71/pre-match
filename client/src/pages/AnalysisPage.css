@@ -6,6 +6,7 @@
 
 .analysis-page__back {
   align-self: flex-start;
+  text-decoration: none;
 }
 
 .analysis-page__vs {

@@ -236,19 +236,28 @@ export function findMatchdayBounds(league, nowIso) {
 /**
  * Lists matches involving any of the given teams on either side.
  * @param {number[]} teamIds Team ids.
+ * @param {string} [league] When given, restricts results to that league (so two
+ *   teams that also played each other in a different competition don't mix in).
  * @returns {object[]} Plain match objects ordered by kickoff date.
  */
-export function findByTeams(teamIds) {
+export function findByTeams(teamIds, league) {
   if (!teamIds || teamIds.length === 0) return [];
 
   const placeholders = teamIds.map(() => '?').join(', ');
+  const params = [...teamIds, ...teamIds];
+  let sql = `SELECT * FROM matches
+       WHERE (home_team_id IN (${placeholders}) OR away_team_id IN (${placeholders}))`;
+
+  if (league) {
+    sql += ' AND league = ?';
+    params.push(league);
+  }
+
+  sql += ' ORDER BY utc_date';
+
   return getDb()
-    .prepare(
-      `SELECT * FROM matches
-       WHERE home_team_id IN (${placeholders}) OR away_team_id IN (${placeholders})
-       ORDER BY utc_date`,
-    )
-    .all(...teamIds, ...teamIds)
+    .prepare(sql)
+    .all(...params)
     .map(toPlain);
 }
 

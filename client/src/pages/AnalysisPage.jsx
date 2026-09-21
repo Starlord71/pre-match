@@ -1,4 +1,6 @@
+import { Link, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { useTeams } from '../hooks/useTeams.js'
 import { useAnalysis } from '../hooks/useAnalysis.js'
 import { formatDateTime } from '../utils/formatDate.js'
 import FormCard from '../components/FormCard.jsx'
@@ -8,71 +10,106 @@ import './AnalysisPage.css'
 
 /**
  * Match analysis view: renders the three signals as independent cards.
- * @param {object} props Component props.
- * @param {object} props.selection Chosen pairing: `{ league, home, away }`. The
- *   real fixture (date, matchday, result if already played) is resolved by the
- *   backend and comes back as `analysis.fixture`.
- * @param {() => void} props.onBack Returns to the explorer.
+ *
+ * The pairing is resolved from the URL (`league`, `homeId`, `awayId`) and the
+ * team names are looked up through `useTeams`, so a refresh or a shared link
+ * keeps the current match. The real fixture (date, matchday, result if already
+ * played) is resolved by the backend and comes back as `analysis.fixture`.
  * @returns {JSX.Element} The analysis page.
  */
-function AnalysisPage({ selection, onBack }) {
+function AnalysisPage() {
   const { t, i18n } = useTranslation()
-  const { home, away, league } = selection
-  const { analysis, loading, error } = useAnalysis({ home: home.id, away: away.id })
+  const { league, homeId, awayId } = useParams()
+  const { teams, loading: teamsLoading, error: teamsError } = useTeams(league)
+  const home = teams.find((team) => String(team.id) === homeId)
+  const away = teams.find((team) => String(team.id) === awayId)
+  const { analysis, loading, error } = useAnalysis({ home: home?.id, away: away?.id, league })
   const fixture = analysis?.fixture
+  const hasPairing = Boolean(home && away)
 
   return (
     <section className="analysis-page">
-      <button type="button" className="button button--ghost analysis-page__back" onClick={onBack}>
+      <Link to="/" className="button button--ghost analysis-page__back">
         ← {t('analysis.back')}
-      </button>
+      </Link>
 
-      <header className="page-header">
-        <h1 className="page-title">
-          <span>{home.name}</span> <span className="analysis-page__vs">{t('analysis.vs')}</span>{' '}
-          <span>{away.name}</span>
-        </h1>
-        <p className="page-subtitle">{t(`leagues.${league}`)}</p>
-      </header>
-
-      {fixture ? (
-        <div className="analysis-page__fixture">
-          {fixture.fullTimeHome !== null && fixture.fullTimeAway !== null ? (
-            <span className="analysis-page__fixture-score">
-              {`${fixture.fullTimeHome} – ${fixture.fullTimeAway}`}
-            </span>
-          ) : null}
-          <span className="analysis-page__fixture-meta">
-            {t(`status.${fixture.status}`, { defaultValue: fixture.status })}
-            {' · '}
-            {formatDateTime(fixture.utcDate, i18n.language)}
-            {fixture.matchday ? ` · ${t('live.matchday', { matchday: fixture.matchday })}` : ''}
-          </span>
-        </div>
-      ) : null}
-      {analysis && !fixture ? (
-        <p className="analysis-page__fixture analysis-page__fixture--none">{t('analysis.noFixture')}</p>
-      ) : null}
-
-      {loading ? (
+      {teamsLoading ? (
         <p className="explorer__status" role="status">
           {t('analysis.loading')}
         </p>
       ) : null}
-      {error ? (
+      {teamsError ? (
         <p className="explorer__status explorer__status--error" role="alert">
           {t('analysis.error')}
         </p>
       ) : null}
+      {!teamsLoading && !teamsError && !hasPairing ? (
+        <p className="explorer__status explorer__status--error" role="alert">
+          {t('analysis.notFound')}
+        </p>
+      ) : null}
 
-      {analysis ? (
+      {hasPairing ? (
         <>
-          <p className="analysis-page__note">{t('analysis.signalsNote')}</p>
-          <div className="analysis-page__grid">
-            <FormCard form={analysis.form} homeTeam={home} awayTeam={away} />
-            <HomeAwayCard homeAway={analysis.homeAway} homeTeam={home} awayTeam={away} />
-            <ScheduleCongestionCard schedule={analysis.schedule} homeTeam={home} awayTeam={away} />
-          </div>
+          <header className="page-header">
+            <h1 className="page-title">
+              <span>{home.name}</span> <span className="analysis-page__vs">{t('analysis.vs')}</span>{' '}
+              <span>{away.name}</span>
+            </h1>
+            <p className="page-subtitle">{t(`leagues.${league}`)}</p>
+          </header>
+
+          {fixture ? (
+            <div className="analysis-page__fixture">
+              {fixture.fullTimeHome !== null && fixture.fullTimeAway !== null ? (
+                <span className="analysis-page__fixture-score">
+                  {`${fixture.fullTimeHome} – ${fixture.fullTimeAway}`}
+                </span>
+              ) : null}
+              <span className="analysis-page__fixture-meta">
+                {t(`status.${fixture.status}`, { defaultValue: fixture.status })}
+                {' · '}
+                {formatDateTime(fixture.utcDate, i18n.language)}
+                {fixture.matchday ? ` · ${t('live.matchday', { matchday: fixture.matchday })}` : ''}
+              </span>
+            </div>
+          ) : null}
+          {analysis && !fixture ? (
+            <p className="analysis-page__fixture analysis-page__fixture--none">
+              {t('analysis.noFixture')}
+            </p>
+          ) : null}
+
+          {loading ? (
+            <p className="explorer__status" role="status">
+              {t('analysis.loading')}
+            </p>
+          ) : null}
+          {error ? (
+            <p className="explorer__status explorer__status--error" role="alert">
+              {t('analysis.error')}
+            </p>
+          ) : null}
+
+          {analysis ? (
+            <>
+              <p className="analysis-page__note">{t('analysis.signalsNote')}</p>
+              <div className="analysis-page__grid">
+                <FormCard form={analysis.form} homeTeam={home} awayTeam={away} />
+                <HomeAwayCard
+                  homeAway={analysis.homeAway}
+                  standings={analysis.standings}
+                  homeTeam={home}
+                  awayTeam={away}
+                />
+                <ScheduleCongestionCard
+                  schedule={analysis.schedule}
+                  homeTeam={home}
+                  awayTeam={away}
+                />
+              </div>
+            </>
+          ) : null}
         </>
       ) : null}
     </section>

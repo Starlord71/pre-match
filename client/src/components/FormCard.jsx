@@ -50,7 +50,7 @@ function FormCard({ form, homeTeam, awayTeam }) {
                 <p className="empty-note">{t('form.noData')}</p>
               ) : (
                 <ul className="result-pills" aria-label={t('form.title')}>
-                  {results.map((result) => (
+                  {[...results].reverse().map((result) => (
                     <li key={result.matchId} className={`result-pill result-pill--${result.result}`}>
                       {t(`form.result.${result.result}`)}
                     </li>

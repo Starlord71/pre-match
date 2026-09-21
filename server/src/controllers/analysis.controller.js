@@ -29,6 +29,7 @@ export async function getAnalysis(req, res, next) {
       homeTeamId: query.data.home,
       awayTeamId: query.data.away,
       matchDate: query.data.date,
+      league: query.data.league,
     });
     res.status(200).json(analysis);
   } catch (err) {

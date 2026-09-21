@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useTeams } from '../hooks/useTeams.js'
 import { syncLeague } from '../services/sync.service.js'
@@ -11,14 +12,13 @@ import './ExplorerPage.css'
 /**
  * League and team explorer.
  *
- * Orchestrates `useTeams` and the sync service, then hands the selection to the
- * analysis page. No fetch or socket call happens here.
- * @param {object} props Component props.
- * @param {(selection: object) => void} props.onAnalyze Called with the chosen fixture.
+ * Orchestrates `useTeams` and the sync service, then navigates to the analysis
+ * route. No fetch or socket call happens here.
  * @returns {JSX.Element} The explorer page.
  */
-function ExplorerPage({ onAnalyze }) {
+function ExplorerPage() {
   const { t } = useTranslation()
+  const navigate = useNavigate()
   const [league, setLeague] = useState('')
   const [homeId, setHomeId] = useState('')
   const [awayId, setAwayId] = useState('')
@@ -61,9 +61,7 @@ function ExplorerPage({ onAnalyze }) {
     event.preventDefault()
     if (!canAnalyze) return
 
-    const home = teams.find((team) => String(team.id) === homeId)
-    const away = teams.find((team) => String(team.id) === awayId)
-    onAnalyze({ league, home, away })
+    navigate(`/match/${league}/${homeId}/${awayId}`)
   }
 
   return (

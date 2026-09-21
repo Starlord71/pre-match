@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor, within, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { MemoryRouter } from 'react-router-dom'
 import App from '../App.jsx'
 import i18n from '../i18n/index.js'
 import { analysisFixture } from '../test/fixtures.js'
@@ -73,7 +74,11 @@ describe('integration flows', () => {
 
   it('flows from league to teams to the three separate analysis cards', async () => {
     const user = userEvent.setup()
-    render(<App />)
+    render(
+      <MemoryRouter>
+        <App />
+      </MemoryRouter>,
+    )
 
     await selectFixture(user)
     await user.click(screen.getByRole('button', { name: 'Ver análisis' }))
@@ -84,7 +89,7 @@ describe('integration flows', () => {
     expect(screen.getByText('Congestión de calendario')).toBeInTheDocument()
     expect(screen.queryByText(/score/i)).not.toBeInTheDocument()
     // ExplorerPage no longer invents a date; the backend resolves the real fixture.
-    expect(getAnalysis).toHaveBeenCalledWith({ home: 1, away: 2, date: undefined })
+    expect(getAnalysis).toHaveBeenCalledWith({ home: 1, away: 2, date: undefined, league: 'PL' })
   })
 
   it('lists the league matchday, follows a match and reflects a live update without refetching', async () => {
@@ -95,7 +100,11 @@ describe('integration flows', () => {
       return vi.fn()
     })
 
-    render(<App />)
+    render(
+      <MemoryRouter>
+        <App />
+      </MemoryRouter>,
+    )
 
     await user.selectOptions(screen.getByLabelText('Liga'), 'PL')
 
@@ -116,7 +125,11 @@ describe('integration flows', () => {
 
   it('switches language end to end without remounting the rendered cards', async () => {
     const user = userEvent.setup()
-    render(<App />)
+    render(
+      <MemoryRouter>
+        <App />
+      </MemoryRouter>,
+    )
 
     await selectFixture(user)
 

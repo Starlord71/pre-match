@@ -46,7 +46,8 @@
     "loading": "Calculando las señales…",
     "error": "No pudimos calcular el análisis.",
     "signalsNote": "Cada señal se muestra por separado; nunca se combinan en un único resultado.",
-    "noFixture": "No hay un partido programado entre estos equipos en las ligas soportadas."
+    "noFixture": "No hay un partido programado entre estos equipos en las ligas soportadas.",
+    "notFound": "No encontramos esos equipos en esta liga."
   },
   "form": {
     "title": "Forma reciente",
@@ -62,7 +63,7 @@
   },
   "homeAway": {
     "title": "Local vs visitante",
-    "subtitle": "Rendimiento de cada equipo en su condición para este partido.",
+    "subtitle": "Estadísticas de toda la temporada de cada equipo jugando de local o de visitante — no es el historial entre estos dos equipos.",
     "homeVenue": "Como local",
     "awayVenue": "Como visitante",
     "played": "Partidos",
@@ -71,7 +72,10 @@
     "goalsFor": "Goles a favor",
     "goalsAgainst": "Goles en contra",
     "goalDifference": "Diferencia de gol",
-    "noData": "Sin partidos en esta condición."
+    "noData": "Sin partidos en esta condición.",
+    "tablePosition": "Posición en la tabla",
+    "positionValue": "{{position}}.º de {{total}}",
+    "noStanding": "Sin datos de tabla"
   },
   "schedule": {
     "title": "Congestión de calendario",

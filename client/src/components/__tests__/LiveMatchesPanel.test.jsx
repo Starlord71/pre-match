@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor, within, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import LiveMatchesPanel from '../LiveMatchesPanel.jsx'
 import i18n from '../../i18n/index.js'
 import { getMatches } from '../../services/matches.service.js'
@@ -58,6 +59,17 @@ function groupByHeading(name) {
   return screen.getByRole('heading', { name }).closest('.live-matches__group')
 }
 
+function renderPanel(league = 'PL') {
+  return render(
+    <MemoryRouter initialEntries={['/']}>
+      <Routes>
+        <Route path="/" element={<LiveMatchesPanel league={league} />} />
+        <Route path="/match/:league/:homeId/:awayId" element={<div>match-detail</div>} />
+      </Routes>
+    </MemoryRouter>,
+  )
+}
+
 describe('LiveMatchesPanel', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -69,7 +81,7 @@ describe('LiveMatchesPanel', () => {
   })
 
   it('shows only the current matchday, split into ordered days', async () => {
-    render(<LiveMatchesPanel league="PL" />)
+    renderPanel()
 
     await waitFor(() => expect(screen.getByRole('heading', { name: /Jornada 5/ })).toBeInTheDocument())
     expect(screen.queryByRole('heading', { name: /Jornada 6/ })).not.toBeInTheDocument()
@@ -90,7 +102,7 @@ describe('LiveMatchesPanel', () => {
 
   it('switches to the next matchday and back with the toggle', async () => {
     const user = userEvent.setup()
-    render(<LiveMatchesPanel league="PL" />)
+    renderPanel()
 
     await waitFor(() => expect(screen.getByRole('heading', { name: /Jornada 5/ })).toBeInTheDocument())
 
@@ -114,7 +126,7 @@ describe('LiveMatchesPanel', () => {
       matchdays: [],
     })
 
-    render(<LiveMatchesPanel league="PL" />)
+    renderPanel()
 
     await waitFor(() =>
       expect(screen.getByText('No hay jornadas cargadas para esta liga.')).toBeInTheDocument(),
@@ -122,7 +134,7 @@ describe('LiveMatchesPanel', () => {
   })
 
   it('asks for a league when none is selected', () => {
-    render(<LiveMatchesPanel league="" />)
+    renderPanel('')
 
     expect(screen.getByText('Seleccioná una liga para ver sus partidos.')).toBeInTheDocument()
     expect(getMatches).not.toHaveBeenCalled()
@@ -130,7 +142,7 @@ describe('LiveMatchesPanel', () => {
 
   it('follows and unfollows a match, subscribing only while followed', async () => {
     const user = userEvent.setup()
-    render(<LiveMatchesPanel league="PL" />)
+    renderPanel()
 
     const current = await waitFor(() => groupByHeading(/Jornada 5/))
     const liveRow = within(current).getByText('Home United').closest('.live-match')
@@ -156,7 +168,7 @@ describe('LiveMatchesPanel', () => {
       return vi.fn()
     })
 
-    render(<LiveMatchesPanel league="PL" />)
+    renderPanel()
 
     const current = await waitFor(() => groupByHeading(/Jornada 5/))
     const liveRow = within(current).getByText('Home United').closest('.live-match')
@@ -174,7 +186,7 @@ describe('LiveMatchesPanel', () => {
   })
 
   it('announces the kickoff date for a match that has not started', async () => {
-    render(<LiveMatchesPanel league="PL" />)
+    renderPanel()
 
     const current = await waitFor(() => groupByHeading(/Jornada 5/))
     const upcomingRow = within(current).getByText('Liverpool').closest('.live-match')
@@ -193,7 +205,7 @@ describe('LiveMatchesPanel', () => {
       ],
     })
 
-    render(<LiveMatchesPanel league="PL" />)
+    renderPanel()
 
     const row = (await waitFor(() => screen.getByText('Old Home'))).closest('.live-match')
     expect(within(row).queryByText('Sin novedades recientes.')).not.toBeInTheDocument()
@@ -205,7 +217,7 @@ describe('LiveMatchesPanel', () => {
 
   it('enables desktop notifications after permission is granted', async () => {
     const user = userEvent.setup()
-    render(<LiveMatchesPanel league="PL" />)
+    renderPanel()
 
     await user.click(screen.getByRole('button', { name: 'Avisarme de los cambios' }))
 
@@ -220,7 +232,7 @@ describe('LiveMatchesPanel', () => {
   it('keeps notifications off when permission is denied', async () => {
     const user = userEvent.setup()
     requestPermission.mockResolvedValueOnce('denied')
-    render(<LiveMatchesPanel league="PL" />)
+    renderPanel()
 
     await user.click(screen.getByRole('button', { name: 'Avisarme de los cambios' }))
 
@@ -240,7 +252,7 @@ describe('LiveMatchesPanel', () => {
       return vi.fn()
     })
 
-    render(<LiveMatchesPanel league="PL" />)
+    renderPanel()
 
     const current = await waitFor(() => groupByHeading(/Jornada 5/))
     const liveRow = within(current).getByText('Home United').closest('.live-match')
@@ -264,5 +276,31 @@ describe('LiveMatchesPanel', () => {
       fullTimeHome: 2,
       fullTimeAway: 0,
     })
+  })
+
+  it('opens the match detail when the card body is clicked', async () => {
+    const user = userEvent.setup()
+    renderPanel()
+
+    const current = await waitFor(() => groupByHeading(/Jornada 5/))
+    const row = within(current).getByText('Home United').closest('.live-match')
+
+    await user.click(row.querySelector('.live-match__main'))
+
+    expect(await screen.findByText('match-detail')).toBeInTheDocument()
+  })
+
+  it('does not navigate when the follow button is clicked', async () => {
+    const user = userEvent.setup()
+    renderPanel()
+
+    const current = await waitFor(() => groupByHeading(/Jornada 5/))
+    const row = within(current).getByText('Home United').closest('.live-match')
+
+    await user.click(within(row).getByRole('button', { name: 'Seguir' }))
+
+    expect(within(row).getByRole('button', { name: 'Siguiendo' })).toBeInTheDocument()
+    expect(screen.queryByText('match-detail')).not.toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /Jornada 5/ })).toBeInTheDocument()
   })
 })

@@ -46,7 +46,8 @@
     "loading": "Computing the signals…",
     "error": "We could not compute the analysis.",
     "signalsNote": "Each signal is shown separately; they are never merged into a single result.",
-    "noFixture": "There is no scheduled match between these teams in the supported leagues."
+    "noFixture": "There is no scheduled match between these teams in the supported leagues.",
+    "notFound": "We could not find those teams in this league."
   },
   "form": {
     "title": "Recent form",
@@ -62,7 +63,7 @@
   },
   "homeAway": {
     "title": "Home vs away",
-    "subtitle": "Each team's performance in its venue for this match.",
+    "subtitle": "Each team's season-long record in that venue — not their head-to-head history.",
     "homeVenue": "At home",
     "awayVenue": "Away",
     "played": "Matches",
@@ -71,7 +72,10 @@
     "goalsFor": "Goals for",
     "goalsAgainst": "Goals against",
     "goalDifference": "Goal difference",
-    "noData": "No matches in this venue."
+    "noData": "No matches in this venue.",
+    "tablePosition": "League position",
+    "positionValue": "{{position}}th of {{total}}",
+    "noStanding": "No table data"
   },
   "schedule": {
     "title": "Schedule congestion",

@@ -23,7 +23,16 @@ describe('analysisEngine/orchestrator', () => {
     const result = await analyzeMatch(FIXTURE, { matches: sampleMatches, signals });
 
     expect(Object.keys(result).sort()).toEqual(
-      ['awayTeamId', 'fixture', 'form', 'homeAway', 'homeTeamId', 'matchDate', 'schedule'].sort(),
+      [
+        'awayTeamId',
+        'fixture',
+        'form',
+        'homeAway',
+        'homeTeamId',
+        'matchDate',
+        'schedule',
+        'standings',
+      ].sort(),
     );
     expect(result).not.toHaveProperty('score');
     expect(result).not.toHaveProperty('pick');
@@ -31,6 +40,35 @@ describe('analysisEngine/orchestrator', () => {
     expect(result.form).toEqual({ home: { signal: 'form' }, away: { signal: 'form' } });
     expect(result.homeAway).toEqual({ home: { signal: 'homeAway' }, away: { signal: 'homeAway' } });
     expect(result.schedule).toEqual({ home: { signal: 'schedule' }, away: { signal: 'schedule' } });
+  });
+
+  it('returns null standings when no league is given', async () => {
+    const result = await analyzeMatch(FIXTURE, { matches: sampleMatches });
+
+    expect(result.standings).toBeNull();
+  });
+
+  it('computes standings and finds each team position when a league is given', async () => {
+    const result = await analyzeMatch(
+      { ...FIXTURE, league: 'PL' },
+      { matches: sampleMatches, leagueMatches: sampleMatches },
+    );
+
+    expect(result.standings.home).toMatchObject({ teamId: 1 });
+    expect(result.standings.away).toMatchObject({ teamId: 2 });
+    expect(result.standings.home.position).toBeGreaterThanOrEqual(1);
+    expect(result.standings.home.totalTeams).toBe(result.standings.away.totalTeams);
+  });
+
+  it('loads league matches from the repository when computing standings', async () => {
+    const repository = {
+      findByTeams: vi.fn(() => sampleMatches),
+      findByLeague: vi.fn(() => sampleMatches),
+    };
+
+    await analyzeMatch({ ...FIXTURE, league: 'PL' }, { repository });
+
+    expect(repository.findByLeague).toHaveBeenCalledWith('PL');
   });
 
   it('calls each signal with the home/away specific arguments', async () => {
@@ -55,7 +93,7 @@ describe('analysisEngine/orchestrator', () => {
 
     await analyzeMatch(FIXTURE, { repository });
 
-    expect(repository.findByTeams).toHaveBeenCalledWith([1, 2]);
+    expect(repository.findByTeams).toHaveBeenCalledWith([1, 2], undefined);
   });
 
   it('produces coherent signals end-to-end over the real fixtures', async () => {

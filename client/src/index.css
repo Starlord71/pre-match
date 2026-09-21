@@ -7,6 +7,7 @@
   --text-strong: #12141f;
   --text-muted: #787d93;
   --accent: #4f46e5;
+  --accent-away: #0d9488;
   --accent-contrast: #ffffff;
   --success: #16a34a;
   --warning: #d97706;
@@ -41,6 +42,7 @@
     --text-strong: #f2f4fa;
     --text-muted: #7d8398;
     --accent: #8b87ff;
+    --accent-away: #2dd4bf;
     --accent-contrast: #10121a;
     --success: #34d399;
     --warning: #fbbf24;

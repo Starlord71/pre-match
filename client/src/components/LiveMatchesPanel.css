@@ -133,6 +133,13 @@
   flex-direction: column;
   gap: 0.35rem;
   min-width: 0;
+  cursor: pointer;
+}
+
+.live-match__main:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
 }
 
 .live-match__teams {

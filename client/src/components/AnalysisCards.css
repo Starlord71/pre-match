@@ -90,7 +90,35 @@
   background: var(--surface-muted);
 }
 
-.venue-tag,
+.stat-column--home {
+  border-left: 3px solid var(--accent);
+}
+
+.stat-column--away {
+  border-left: 3px solid var(--accent-away);
+}
+
+.venue-tag {
+  font-size: 0.7rem;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.venue-tag--home {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--accent);
+}
+
+.venue-tag--away {
+  background: color-mix(in srgb, var(--accent-away) 16%, transparent);
+  color: var(--accent-away);
+}
+
 .congestion-tag {
   font-size: 0.7rem;
   font-weight: 650;
@@ -140,5 +168,87 @@
   font-size: 0.85rem;
   color: var(--text-muted);
   font-style: italic;
+}
+
+.stat--positive {
+  color: var(--success);
+}
+
+.stat--negative {
+  color: var(--danger);
+}
+
+.record-badges {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.record-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.record-badge--W {
+  background: var(--success);
+}
+
+.record-badge--D {
+  background: var(--warning);
+}
+
+.record-badge--L {
+  background: var(--danger);
+}
+
+.standings-compare {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius-md);
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+}
+
+.standings-compare__label {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.standings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.standings-row__team {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-strong);
+}
+
+.standings-row__value {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.standings-row--home .standings-row__value {
+  color: var(--accent);
+}
+
+.standings-row--away .standings-row__value {
+  color: var(--accent-away);
 }
 

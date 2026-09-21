@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useMatches } from '../hooks/useMatches.js'
 import { useLiveMatches } from '../hooks/useLiveMatches.js'
@@ -62,6 +63,7 @@ function isUpcomingKickoff(kickoffMs) {
  */
 function LiveMatchesPanel({ league }) {
   const { t, i18n } = useTranslation()
+  const navigate = useNavigate()
   const { matchdays, currentMatchday, nextMatchday, loading, error } = useMatches(league || null)
   const { followedIds, toggleFollow } = useFollowedMatches(league)
   const [notificationsEnabled, setNotificationsEnabled] = useState(readNotificationsEnabled)
@@ -101,6 +103,20 @@ function LiveMatchesPanel({ league }) {
     return t('live.matchday', { matchday: entry.matchday })
   }
 
+  function handleOpen(match) {
+    const homeTeamId = match.homeTeam?.id
+    const awayTeamId = match.awayTeam?.id
+    if (!league || homeTeamId == null || awayTeamId == null) return
+    navigate(`/match/${league}/${homeTeamId}/${awayTeamId}`)
+  }
+
+  function handleMainKeyDown(event, match) {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault()
+      handleOpen(match)
+    }
+  }
+
   function renderMatch(match) {
     const followed = followedIds.has(match.id)
     const hasScore = match.fullTimeHome !== null && match.fullTimeAway !== null
@@ -111,7 +127,13 @@ function LiveMatchesPanel({ league }) {
 
     return (
       <li key={match.id} className="live-match">
-        <div className="live-match__main">
+        <div
+          className="live-match__main"
+          role="button"
+          tabIndex={0}
+          onClick={() => handleOpen(match)}
+          onKeyDown={(event) => handleMainKeyDown(event, match)}
+        >
           <p className="live-match__teams">
             <span className="live-match__team">{match.homeTeam?.name ?? match.homeTeamId}</span>
             <span className="live-match__vs">{t('analysis.vs')}</span>
