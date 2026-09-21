@@ -235,4 +235,4 @@ cubierta por las suites de tests, y la fase 7 empaqueta toda la app como una sol
 
 ## Licencia
 
-Por definir — _WIP_.
+Publicado bajo la [licencia MIT](LICENSE).
