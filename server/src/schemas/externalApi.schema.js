@@ -32,9 +32,35 @@ export const externalTeamsResponseSchema = z.object({
   teams: z.array(teamSchema),
 });
 
-/** `GET /v4/matches/{id}/head2head` response. */
+/**
+ * `GET /v4/matches/{id}/head2head` response.
+ *
+ * `aggregates` is the cross-season summary documented by football-data v4;
+ * `.passthrough()` stays as a safety net for undocumented fields and for the
+ * day this is verified against a recorded fixture.
+ */
 export const externalH2HResponseSchema = z
   .object({
     matches: z.array(externalMatchSchema),
+    aggregates: z
+      .object({
+        numberOfMatches: z.number().int().nonnegative(),
+        totalGoals: z.number().int().nonnegative(),
+        homeTeam: z.object({
+          id: z.number(),
+          name: z.string(),
+          wins: z.number(),
+          draws: z.number(),
+          losses: z.number(),
+        }),
+        awayTeam: z.object({
+          id: z.number(),
+          name: z.string(),
+          wins: z.number(),
+          draws: z.number(),
+          losses: z.number(),
+        }),
+      })
+      .optional(),
   })
   .passthrough();

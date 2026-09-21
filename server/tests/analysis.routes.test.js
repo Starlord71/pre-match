@@ -10,6 +10,9 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
  */
 const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'prematch-analysis-routes-'));
 process.env.DB_PATH = path.join(tempDir, 'test.sqlite');
+// Pin the environment: the head-to-head enrichment must be best-effort, so a
+// test run never reaches football-data.org even when a real key is in `.env`.
+process.env.FOOTBALL_DATA_API_KEY = '';
 
 const { migrate, closeDb } = await import('../src/db/db.js');
 const { createApp } = await import('../src/app.js');
@@ -28,8 +31,29 @@ describe('GET /api/analysis', () => {
       { id: 1, name: 'Home United' },
       { id: 2, name: 'Away City' },
       { id: 3, name: 'Third FC' },
+      { id: 4, name: 'Fourth Rovers' },
+      { id: 5, name: 'Fifth FC' },
     ]);
-    matchesRepository.upsertMany(sampleMatches);
+    matchesRepository.upsertMany([
+      ...sampleMatches,
+      // A single meeting between teams 4 and 5: insufficient for a summary, but
+      // enough to anchor the cross-season enrichment.
+      {
+        id: 500,
+        league: 'PL',
+        utcDate: '2026-01-10T15:00:00Z',
+        status: 'FINISHED',
+        matchday: 1,
+        homeTeamId: 4,
+        awayTeamId: 5,
+        winner: 'HOME_TEAM',
+        duration: 'REGULAR',
+        fullTimeHome: 1,
+        fullTimeAway: 0,
+        halfTimeHome: null,
+        halfTimeAway: null,
+      },
+    ]);
   });
 
   afterAll(() => {
@@ -53,6 +77,19 @@ describe('GET /api/analysis', () => {
     expect(response.body).toHaveProperty('schedule.away');
     expect(response.body).not.toHaveProperty('score');
     expect(response.body).not.toHaveProperty('pick');
+  });
+
+  it('returns 200 without FOOTBALL_DATA_API_KEY, skipping the enrichment', async () => {
+    expect(process.env.FOOTBALL_DATA_API_KEY).toBe('');
+
+    const response = await supertest(app).get(
+      `/api/analysis?home=4&away=5&date=${encodeURIComponent(DATE)}`,
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.body.h2h.insufficientData).toBe(true);
+    expect(response.body.h2h.matchesAnalyzed).toBe(1);
+    expect(response.body.h2h).not.toHaveProperty('externalHistory');
   });
 
   it('returns 400 when a query param is missing', async () => {

@@ -80,7 +80,15 @@
     "insufficient": "Datos insuficientes: se registran {{matches}} de {{minimum}} enfrentamientos como mínimo.",
     "wins": "Victorias de {{team}}",
     "draws": "Empates",
-    "goals": "Goles de {{team}}"
+    "goals": "Goles de {{team}}",
+    "externalHistory": {
+      "title": "Historial completo entre ambos equipos",
+      "matches": "Enfrentamientos",
+      "totalGoals": "Goles totales",
+      "wins": "Victorias de {{team}}",
+      "draws": "Empates",
+      "goals": "Goles de {{team}}"
+    }
   },
   "schedule": {
     "title": "Congestión de calendario",
@@ -109,7 +117,11 @@
     "selectLeague": "Seleccioná una liga para ver sus partidos.",
     "badge": "En vivo",
     "status": "Estado",
-    "score": "Marcador"
+    "score": "Marcador",
+    "upcoming": "Arranca el {{date}}",
+    "noRecentUpdate": "Sin novedades recientes.",
+    "notifyMe": "Avisarme de los cambios",
+    "notifyMeOn": "Avisos activados"
   },
   "status": {
     "SCHEDULED": "Programado",

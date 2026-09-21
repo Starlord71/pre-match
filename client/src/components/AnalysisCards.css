@@ -197,3 +197,18 @@
   font-size: 0.75rem;
   color: var(--text-muted);
 }
+
+.h2h-external {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--border);
+}
+
+.h2h-external__title {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 650;
+  color: var(--text-strong);
+}

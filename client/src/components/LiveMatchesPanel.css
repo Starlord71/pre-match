@@ -11,6 +11,14 @@
 
 .live-matches__header {
   display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.live-matches__heading {
+  display: flex;
   flex-direction: column;
   gap: 0.35rem;
 }
@@ -186,6 +194,11 @@
   align-items: center;
   gap: 0.65rem;
   flex-shrink: 0;
+}
+
+.live-match__state {
+  font-size: 0.8rem;
+  color: var(--text-muted);
 }
 
 @media (max-width: 640px) {

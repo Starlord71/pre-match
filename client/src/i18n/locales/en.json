@@ -80,7 +80,15 @@
     "insufficient": "Insufficient data: {{matches}} of the {{minimum}} required meetings are on record.",
     "wins": "{{team}} wins",
     "draws": "Draws",
-    "goals": "{{team}} goals"
+    "goals": "{{team}} goals",
+    "externalHistory": {
+      "title": "Full head-to-head history",
+      "matches": "Meetings",
+      "totalGoals": "Total goals",
+      "wins": "{{team}} wins",
+      "draws": "Draws",
+      "goals": "{{team}} goals"
+    }
   },
   "schedule": {
     "title": "Schedule congestion",
@@ -109,7 +117,11 @@
     "selectLeague": "Select a league to see its matches.",
     "badge": "Live",
     "status": "Status",
-    "score": "Score"
+    "score": "Score",
+    "upcoming": "Kicks off {{date}}",
+    "noRecentUpdate": "No recent updates.",
+    "notifyMe": "Notify me about changes",
+    "notifyMeOn": "Notifications on"
   },
   "status": {
     "SCHEDULED": "Scheduled",

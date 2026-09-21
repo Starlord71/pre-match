@@ -16,8 +16,13 @@ process.env.DB_PATH = path.join(tempDir, 'test.sqlite');
 const { migrate, closeDb, getDb } = await import('../../src/db/db.js');
 const teamsRepository = await import('../../src/repositories/teams.repository.js');
 const matchesRepository = await import('../../src/repositories/matches.repository.js');
-const { createLivePoller, isLiveWindowOpen, DEFAULT_INTERVAL_MS, DEFAULT_LIVE_WINDOW_MS } =
-  await import('../../src/services/livePoller.service.js');
+const {
+  createLivePoller,
+  isLiveWindowOpen,
+  DEFAULT_INTERVAL_MS,
+  DEFAULT_LIVE_WINDOW_MS,
+  DEFAULT_PRE_KICKOFF_BUFFER_MS,
+} = await import('../../src/services/livePoller.service.js');
 
 const BASE = Date.parse('2026-06-01T12:00:00Z');
 const HALF_HOUR = 30 * 60 * 1000;
@@ -114,6 +119,14 @@ describe('livePoller.service', () => {
     expect(isLiveWindowOpen(kickoff, BASE, DEFAULT_LIVE_WINDOW_MS)).toBe(true);
     expect(isLiveWindowOpen(kickoff, BASE + 3 * 60 * 60 * 1000, DEFAULT_LIVE_WINDOW_MS)).toBe(false);
     expect(isLiveWindowOpen(new Date(BASE + HALF_HOUR).toISOString(), BASE)).toBe(false);
+    expect(
+      isLiveWindowOpen(
+        new Date(BASE + 5 * 60 * 1000).toISOString(),
+        BASE,
+        DEFAULT_LIVE_WINDOW_MS,
+        DEFAULT_PRE_KICKOFF_BUFFER_MS,
+      ),
+    ).toBe(true);
   });
 
   it('does not request anything when no match is in its live window', async () => {
@@ -129,6 +142,21 @@ describe('livePoller.service', () => {
 
     expect(client.calls).toBe(0);
     expect(emitted).toEqual([]);
+  });
+
+  it('requests a match that kicks off within the pre-kickoff buffer', async () => {
+    matchesRepository.upsert(
+      storedMatch({ id: 10, utcDate: new Date(BASE + 5 * 60 * 1000).toISOString() }),
+    );
+
+    const client = createFakeClient(() => ({ matches: [] }));
+    const poller = createLivePoller({ client, now: Date.now });
+
+    poller.start();
+    await vi.advanceTimersByTimeAsync(DEFAULT_INTERVAL_MS);
+    poller.stop();
+
+    expect(client.calls).toBe(1);
   });
 
   it('requests and emits when a match is inside its live window', async () => {

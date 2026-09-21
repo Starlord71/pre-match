@@ -128,4 +128,35 @@ export const insufficientH2hAnalysis = {
   },
 }
 
+/**
+ * Insufficient local history enriched with the cross-season aggregate: the
+ * `insufficientData` flag stays and the extra block is additive.
+ */
+export const insufficientH2hAnalysisWithExternalHistory = {
+  ...insufficientH2hAnalysis,
+  h2h: {
+    ...insufficientH2hAnalysis.h2h,
+    meetings: [
+      {
+        matchId: 25,
+        utcDate: '2026-02-07T15:00:00Z',
+        homeTeamId: 2,
+        awayTeamId: 1,
+        homeScore: 0,
+        awayScore: 0,
+        resultForTeamA: 'D',
+      },
+    ],
+    externalHistory: {
+      numberOfMatches: 6,
+      totalGoals: 8,
+      teamAWins: 2,
+      teamBWins: 1,
+      draws: 3,
+      goalsA: 5,
+      goalsB: 3,
+    },
+  },
+}
+
 export const teamsFixture = [homeTeam, awayTeam]

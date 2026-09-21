@@ -2,19 +2,59 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useMatches } from '../hooks/useMatches.js'
 import { useLiveMatches } from '../hooks/useLiveMatches.js'
+import { useFollowedMatches } from '../hooks/useFollowedMatches.js'
 import { LIVE_STATUSES } from '../constants/matchStatus.js'
 import { groupMatchesByDay, formatDayRange, formatDayLabel } from '../utils/matchdays.js'
+import { playNotificationSound } from '../utils/notificationSound.js'
+import { notify, requestPermission } from '../services/notifications.service.js'
 import LiveIndicator from './LiveIndicator.jsx'
 import './LiveMatchesPanel.css'
+
+/** localStorage key holding the desktop-notifications opt-in. */
+const NOTIFICATIONS_STORAGE_KEY = 'notificationsEnabled'
+
+/**
+ * Reads the persisted notifications opt-in, defaulting to off.
+ * @returns {boolean} Whether notifications are enabled.
+ */
+function readNotificationsEnabled() {
+  try {
+    return window.localStorage.getItem(NOTIFICATIONS_STORAGE_KEY) === 'true'
+  } catch {
+    return false
+  }
+}
+
+/**
+ * Persists the notifications opt-in, ignoring storage failures.
+ * @param {boolean} value Enabled state.
+ * @returns {void}
+ */
+function writeNotificationsEnabled(value) {
+  try {
+    window.localStorage.setItem(NOTIFICATIONS_STORAGE_KEY, String(value))
+  } catch {
+    // Storage is unavailable; the in-memory state still works.
+  }
+}
+
+/**
+ * Tells whether a kickoff is still in the future.
+ * @param {number} kickoffMs Kickoff timestamp in milliseconds.
+ * @returns {boolean} True when the match has not started yet.
+ */
+function isUpcomingKickoff(kickoffMs) {
+  return kickoffMs > Date.now()
+}
 
 /**
  * Lists a league's current matchday and lets the user follow any number of
  * matches at once. A toggle swaps the visible list to the next matchday.
  *
  * Data comes from `useMatches`; live updates come from `useLiveMatches`, which
- * hides the socket client. The visible matchday is split into its calendar days
- * and ordered by kickoff. The component owns the followed-ids set and the
- * current/next view state.
+ * hides the socket client. The followed ids are persisted per league by
+ * `useFollowedMatches`. Every accepted update for a followed match plays a short
+ * sound and, when the user opted in, shows a desktop notification.
  * @param {object} props Component props.
  * @param {string} props.league Currently selected league code.
  * @returns {JSX.Element} The live matches panel.
@@ -22,17 +62,28 @@ import './LiveMatchesPanel.css'
 function LiveMatchesPanel({ league }) {
   const { t, i18n } = useTranslation()
   const { matchdays, currentMatchday, nextMatchday, loading, error } = useMatches(league || null)
-  const [followedIds, setFollowedIds] = useState(() => new Set())
+  const { followedIds, toggleFollow } = useFollowedMatches(league)
+  const [notificationsEnabled, setNotificationsEnabled] = useState(readNotificationsEnabled)
   const [view, setView] = useState('current')
-  const updatesById = useLiveMatches([...followedIds])
 
-  function toggleFollow(id) {
-    setFollowedIds((previous) => {
-      const next = new Set(previous)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
-      return next
-    })
+  function handleLiveUpdate(match) {
+    playNotificationSound()
+    if (notificationsEnabled) notify(match)
+  }
+
+  const updatesById = useLiveMatches([...followedIds], { onUpdate: handleLiveUpdate })
+
+  async function toggleNotifications() {
+    if (notificationsEnabled) {
+      setNotificationsEnabled(false)
+      writeNotificationsEnabled(false)
+      return
+    }
+
+    const permission = await requestPermission()
+    const granted = permission === 'granted'
+    setNotificationsEnabled(granted)
+    writeNotificationsEnabled(granted)
   }
 
   const groups = matchdays.map((entry) => ({
@@ -52,6 +103,10 @@ function LiveMatchesPanel({ league }) {
   function renderMatch(match) {
     const followed = followedIds.has(match.id)
     const hasScore = match.fullTimeHome !== null && match.fullTimeAway !== null
+    const isLive = LIVE_STATUSES.includes(match.status)
+    const kickoff = new Date(match.utcDate).getTime()
+    const isUpcoming = isUpcomingKickoff(kickoff)
+    const hasUpdate = updatesById[match.id] != null
 
     return (
       <li key={match.id} className="live-match">
@@ -71,8 +126,14 @@ function LiveMatchesPanel({ league }) {
         </div>
 
         <div className="live-match__side">
-          {LIVE_STATUSES.includes(match.status) ? (
-            <LiveIndicator live label={t('live.badge')} />
+          {isLive ? <LiveIndicator live label={t('live.badge')} /> : null}
+          {!isLive && isUpcoming ? (
+            <span className="live-match__state">
+              {t('live.upcoming', { date: new Date(match.utcDate).toLocaleString(i18n.language) })}
+            </span>
+          ) : null}
+          {!isLive && !isUpcoming && followed && !hasUpdate && !hasScore ? (
+            <span className="live-match__state">{t('live.noRecentUpdate')}</span>
           ) : null}
           <button
             type="button"
@@ -90,8 +151,18 @@ function LiveMatchesPanel({ league }) {
   return (
     <section className="live-matches">
       <header className="live-matches__header">
-        <h2 className="live-matches__title">{t('live.title')}</h2>
-        <p className="live-matches__subtitle">{t('live.subtitle')}</p>
+        <div className="live-matches__heading">
+          <h2 className="live-matches__title">{t('live.title')}</h2>
+          <p className="live-matches__subtitle">{t('live.subtitle')}</p>
+        </div>
+        <button
+          type="button"
+          className={`button ${notificationsEnabled ? 'button--primary' : 'button--ghost'}`}
+          aria-pressed={notificationsEnabled}
+          onClick={toggleNotifications}
+        >
+          {notificationsEnabled ? t('live.notifyMeOn') : t('live.notifyMe')}
+        </button>
       </header>
 
       {canToggle ? (

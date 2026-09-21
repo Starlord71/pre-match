@@ -5,9 +5,16 @@ import LiveMatchesPanel from './LiveMatchesPanel.jsx'
 import i18n from '../i18n/index.js'
 import { getMatches } from '../services/matches.service.js'
 import { subscribeToMatches } from '../services/sockets.service.js'
+import { playNotificationSound } from '../utils/notificationSound.js'
+import { notify, requestPermission } from '../services/notifications.service.js'
 
 vi.mock('../services/matches.service.js', () => ({ getMatches: vi.fn() }))
 vi.mock('../services/sockets.service.js', () => ({ subscribeToMatches: vi.fn(() => vi.fn()) }))
+vi.mock('../utils/notificationSound.js', () => ({ playNotificationSound: vi.fn() }))
+vi.mock('../services/notifications.service.js', () => ({
+  notify: vi.fn(),
+  requestPermission: vi.fn(async () => 'granted'),
+}))
 
 const hoursFromNow = (hours) => new Date(Date.now() + hours * 60 * 60 * 1000).toISOString()
 
@@ -54,6 +61,8 @@ function groupByHeading(name) {
 describe('LiveMatchesPanel', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    requestPermission.mockReset()
+    requestPermission.mockResolvedValue('granted')
     i18n.changeLanguage('es')
     subscribeToMatches.mockReturnValue(vi.fn())
     getMatches.mockResolvedValue(payload)
@@ -162,5 +171,98 @@ describe('LiveMatchesPanel', () => {
     expect(within(liveRow).getByText('Entretiempo')).toBeInTheDocument()
     expect(within(liveRow).getByText('Home United')).toBeInTheDocument()
     expect(getMatches).toHaveBeenCalledTimes(1)
+  })
+
+  it('announces the kickoff date for a match that has not started', async () => {
+    render(<LiveMatchesPanel league="PL" />)
+
+    const current = await waitFor(() => groupByHeading(/Jornada 5/))
+    const upcomingRow = within(current).getByText('Liverpool').closest('.live-match')
+
+    expect(within(upcomingRow).getByText(/Arranca el/)).toBeInTheDocument()
+  })
+
+  it('shows a no-recent-update note for a followed match past its kickoff', async () => {
+    const user = userEvent.setup()
+    getMatches.mockResolvedValue({
+      league: 'PL',
+      currentMatchday: 5,
+      nextMatchday: null,
+      matchdays: [
+        { matchday: 5, matches: [match(9, 'SCHEDULED', -1, 'Old Home', 'Old Away')] },
+      ],
+    })
+
+    render(<LiveMatchesPanel league="PL" />)
+
+    const row = (await waitFor(() => screen.getByText('Old Home'))).closest('.live-match')
+    expect(within(row).queryByText('Sin novedades recientes.')).not.toBeInTheDocument()
+
+    await user.click(within(row).getByRole('button', { name: 'Seguir' }))
+
+    expect(await within(row).findByText('Sin novedades recientes.')).toBeInTheDocument()
+  })
+
+  it('enables desktop notifications after permission is granted', async () => {
+    const user = userEvent.setup()
+    render(<LiveMatchesPanel league="PL" />)
+
+    await user.click(screen.getByRole('button', { name: 'Avisarme de los cambios' }))
+
+    await waitFor(() => expect(requestPermission).toHaveBeenCalledTimes(1))
+    expect(await screen.findByRole('button', { name: 'Avisos activados' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    )
+    expect(window.localStorage.getItem('notificationsEnabled')).toBe('true')
+  })
+
+  it('keeps notifications off when permission is denied', async () => {
+    const user = userEvent.setup()
+    requestPermission.mockResolvedValueOnce('denied')
+    render(<LiveMatchesPanel league="PL" />)
+
+    await user.click(screen.getByRole('button', { name: 'Avisarme de los cambios' }))
+
+    await waitFor(() => expect(requestPermission).toHaveBeenCalledTimes(1))
+    expect(screen.getByRole('button', { name: 'Avisarme de los cambios' })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    )
+    expect(window.localStorage.getItem('notificationsEnabled')).toBe('false')
+  })
+
+  it('plays a sound on every followed update and notifies only when enabled', async () => {
+    const user = userEvent.setup()
+    let handler
+    subscribeToMatches.mockImplementation((_ids, onUpdate) => {
+      handler = onUpdate
+      return vi.fn()
+    })
+
+    render(<LiveMatchesPanel league="PL" />)
+
+    const current = await waitFor(() => groupByHeading(/Jornada 5/))
+    const liveRow = within(current).getByText('Home United').closest('.live-match')
+    await user.click(within(liveRow).getByRole('button', { name: 'Seguir' }))
+    await waitFor(() => expect(handler).toBeTypeOf('function'))
+
+    act(() => handler({ id: 1, status: 'IN_PLAY', fullTimeHome: 1, fullTimeAway: 0 }))
+
+    expect(playNotificationSound).toHaveBeenCalledTimes(1)
+    expect(notify).not.toHaveBeenCalled()
+
+    await user.click(screen.getByRole('button', { name: 'Avisarme de los cambios' }))
+    await screen.findByRole('button', { name: 'Avisos activados' })
+
+    act(() => handler({ id: 1, status: 'PAUSED', fullTimeHome: 2, fullTimeAway: 0 }))
+
+    expect(playNotificationSound).toHaveBeenCalledTimes(2)
+    expect(notify).toHaveBeenCalledWith({
+      id: 1,
+      status: 'PAUSED',
+      fullTimeHome: 2,
+      fullTimeAway: 0,
+    })
   })
 })

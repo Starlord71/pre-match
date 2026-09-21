@@ -67,6 +67,50 @@ describe('useLiveMatches', () => {
     expect(result.current).toEqual({})
   })
 
+  it('invokes onUpdate only for accepted updates', () => {
+    let handler
+    subscribeMock.mockImplementation((_ids, onUpdate) => {
+      handler = onUpdate
+      return vi.fn()
+    })
+    const onUpdate = vi.fn()
+
+    renderHook(() => useLiveMatches([1], { onUpdate }))
+
+    act(() => {
+      handler({ id: 1, status: 'IN_PLAY' })
+    })
+    expect(onUpdate).toHaveBeenCalledWith({ id: 1, status: 'IN_PLAY' })
+
+    act(() => {
+      handler({ id: 99, status: 'IN_PLAY' })
+    })
+    expect(onUpdate).toHaveBeenCalledTimes(1)
+  })
+
+  it('uses the latest onUpdate callback without resubscribing', () => {
+    let handler
+    subscribeMock.mockImplementation((_ids, onUpdate) => {
+      handler = onUpdate
+      return vi.fn()
+    })
+    const first = vi.fn()
+    const second = vi.fn()
+
+    const { rerender } = renderHook(({ cb }) => useLiveMatches([1], { onUpdate: cb }), {
+      initialProps: { cb: first },
+    })
+
+    rerender({ cb: second })
+    act(() => {
+      handler({ id: 1, status: 'IN_PLAY' })
+    })
+
+    expect(first).not.toHaveBeenCalled()
+    expect(second).toHaveBeenCalledTimes(1)
+    expect(subscribeToMatches).toHaveBeenCalledTimes(1)
+  })
+
   it('resubscribes when the followed ids change', () => {
     const firstUnsubscribe = vi.fn()
     subscribeMock.mockReturnValue(firstUnsubscribe)

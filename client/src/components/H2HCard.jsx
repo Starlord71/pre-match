@@ -17,6 +17,7 @@ function H2HCard({ h2h, homeTeam, awayTeam }) {
   const { t } = useTranslation()
   const matchesAnalyzed = h2h?.matchesAnalyzed ?? 0
   const minimum = h2h?.minimumMatches ?? 0
+  const externalHistory = h2h?.externalHistory
 
   return (
     <SignalCard title={t('h2h.title')} subtitle={t('h2h.subtitle')}>
@@ -25,12 +26,51 @@ function H2HCard({ h2h, homeTeam, awayTeam }) {
       </p>
 
       {h2h?.insufficientData ? (
-        <div className="empty-state" role="status">
-          <span className="empty-state__mark" aria-hidden="true">
-            !
-          </span>
-          <p>{t('h2h.insufficient', { matches: matchesAnalyzed, minimum })}</p>
-        </div>
+        <>
+          <div className="empty-state" role="status">
+            <span className="empty-state__mark" aria-hidden="true">
+              !
+            </span>
+            <p>{t('h2h.insufficient', { matches: matchesAnalyzed, minimum })}</p>
+          </div>
+
+          {externalHistory ? (
+            <div className="h2h-external">
+              <p className="h2h-external__title">{t('h2h.externalHistory.title')}</p>
+              <p className="card-row__meta">
+                {t('h2h.externalHistory.matches')}: {externalHistory.numberOfMatches} ·{' '}
+                {t('h2h.externalHistory.totalGoals')}: {externalHistory.totalGoals}
+              </p>
+              <div className="h2h-summary">
+                <div className="h2h-summary__item">
+                  <span className="h2h-summary__value">{externalHistory.teamAWins}</span>
+                  <span className="h2h-summary__label">
+                    {t('h2h.externalHistory.wins', { team: homeTeam.name })}
+                  </span>
+                </div>
+                <div className="h2h-summary__item">
+                  <span className="h2h-summary__value">{externalHistory.draws}</span>
+                  <span className="h2h-summary__label">{t('h2h.externalHistory.draws')}</span>
+                </div>
+                <div className="h2h-summary__item">
+                  <span className="h2h-summary__value">{externalHistory.teamBWins}</span>
+                  <span className="h2h-summary__label">
+                    {t('h2h.externalHistory.wins', { team: awayTeam.name })}
+                  </span>
+                </div>
+                <div className="h2h-summary__item h2h-summary__item--wide">
+                  <span className="h2h-summary__value">
+                    {externalHistory.goalsA} – {externalHistory.goalsB}
+                  </span>
+                  <span className="h2h-summary__label">
+                    {t('h2h.externalHistory.goals', { team: homeTeam.name })} –{' '}
+                    {t('h2h.externalHistory.goals', { team: awayTeam.name })}
+                  </span>
+                </div>
+              </div>
+            </div>
+          ) : null}
+        </>
       ) : (
         <div className="h2h-summary">
           <div className="h2h-summary__item">

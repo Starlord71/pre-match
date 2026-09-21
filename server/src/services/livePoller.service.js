@@ -23,15 +23,29 @@ export const DEFAULT_INTERVAL_MS = 75_000;
 export const DEFAULT_LIVE_WINDOW_MS = 2 * 60 * 60 * 1000;
 
 /**
- * Tells whether a kickoff is currently inside its live window.
+ * How long before kickoff a match becomes a polling candidate (10 minutes).
+ *
+ * Starting slightly early means a followed match that is about to begin is
+ * re-checked before the exact kickoff, so its first state change is not missed.
+ */
+export const DEFAULT_PRE_KICKOFF_BUFFER_MS = 10 * 60 * 1000;
+
+/**
+ * Tells whether a kickoff is currently inside its polling window.
  * @param {string} kickoffIso ISO kickoff date.
  * @param {number} current Current clock value in milliseconds.
  * @param {number} [liveWindowMs] Live window length in milliseconds.
- * @returns {boolean} True when `current` is between kickoff and kickoff + window.
+ * @param {number} [preKickoffBufferMs] Grace period before kickoff in milliseconds.
+ * @returns {boolean} True when `current` is between kickoff - buffer and kickoff + window.
  */
-export function isLiveWindowOpen(kickoffIso, current, liveWindowMs = DEFAULT_LIVE_WINDOW_MS) {
+export function isLiveWindowOpen(
+  kickoffIso,
+  current,
+  liveWindowMs = DEFAULT_LIVE_WINDOW_MS,
+  preKickoffBufferMs = DEFAULT_PRE_KICKOFF_BUFFER_MS,
+) {
   const kickoff = Date.parse(kickoffIso);
-  return kickoff <= current && current <= kickoff + liveWindowMs;
+  return kickoff - preKickoffBufferMs <= current && current <= kickoff + liveWindowMs;
 }
 
 /**
@@ -85,6 +99,7 @@ function hasChanged(previous, next) {
  * @param {() => number} [options.now=Date.now] Clock, injectable for tests.
  * @param {number} [options.intervalMs] Delay between polls.
  * @param {number} [options.liveWindowMs] Live window length in milliseconds.
+ * @param {number} [options.preKickoffBufferMs] Grace period before kickoff in milliseconds.
  * @param {(match: object, previous: object|null) => void} [options.emit] Update sink.
  * @param {(error: Error, context: string) => void} [options.onError] Failure sink; never throws.
  * @param {typeof setInterval} [options.setIntervalFn] Timer, injectable for tests.
@@ -97,6 +112,7 @@ export function createLivePoller({
   now = Date.now,
   intervalMs = DEFAULT_INTERVAL_MS,
   liveWindowMs = DEFAULT_LIVE_WINDOW_MS,
+  preKickoffBufferMs = DEFAULT_PRE_KICKOFF_BUFFER_MS,
   emit = () => {},
   onError = (error, context) => console.error(`[livePoller] ${context}`, error),
   setIntervalFn = setInterval,
@@ -112,7 +128,7 @@ export function createLivePoller({
   async function tick() {
     const current = now();
     const from = new Date(current - liveWindowMs).toISOString();
-    const to = new Date(current).toISOString();
+    const to = new Date(current + preKickoffBufferMs).toISOString();
 
     const liveMatches = repository.findByKickoffRange(from, to);
     if (liveMatches.length === 0) return [];
@@ -129,7 +145,9 @@ export function createLivePoller({
         const { matches } = externalMatchesResponseSchema.parse(payload);
 
         for (const external of matches) {
-          if (!isLiveWindowOpen(external.utcDate, current, liveWindowMs)) continue;
+          if (!isLiveWindowOpen(external.utcDate, current, liveWindowMs, preKickoffBufferMs)) {
+            continue;
+          }
 
           const row = toMatchRow(external, league);
           const previous = repository.findById(row.id);
