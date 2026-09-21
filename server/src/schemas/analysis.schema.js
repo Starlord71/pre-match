@@ -13,7 +13,7 @@ export const analysisQuerySchema = z
   .object({
     home: z.coerce.number().int().positive(),
     away: z.coerce.number().int().positive(),
-    date: z.string().datetime(),
+    date: z.string().datetime().optional(),
   })
   .refine((query) => query.home !== query.away, {
     message: 'home and away must be different teams',

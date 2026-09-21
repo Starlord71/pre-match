@@ -45,7 +45,8 @@
     "vs": "vs",
     "loading": "Computing the signals…",
     "error": "We could not compute the analysis.",
-    "signalsNote": "Each signal is shown separately; they are never merged into a single result."
+    "signalsNote": "Each signal is shown separately; they are never merged into a single result.",
+    "noFixture": "There is no scheduled match between these teams in the supported leagues."
   },
   "form": {
     "title": "Recent form",
@@ -71,24 +72,6 @@
     "goalsAgainst": "Goals against",
     "goalDifference": "Goal difference",
     "noData": "No matches in this venue."
-  },
-  "h2h": {
-    "title": "Head-to-head",
-    "subtitle": "Previous meetings between the two teams.",
-    "matchesAnalyzed": "Meetings",
-    "minimum": "Minimum required",
-    "insufficient": "Insufficient data: {{matches}} of the {{minimum}} required meetings are on record.",
-    "wins": "{{team}} wins",
-    "draws": "Draws",
-    "goals": "{{team}} goals",
-    "externalHistory": {
-      "title": "Full head-to-head history",
-      "matches": "Meetings",
-      "totalGoals": "Total goals",
-      "wins": "{{team}} wins",
-      "draws": "Draws",
-      "goals": "{{team}} goals"
-    }
   },
   "schedule": {
     "title": "Schedule congestion",

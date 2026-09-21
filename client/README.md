@@ -4,7 +4,7 @@
 
 Web client for the pre-match analysis tool.
 
-> **Status:** phases 1-5 implemented. The UI is responsive (mobile-first), bilingual (ES/EN with instant switching), consumes the API through pure service wrappers and hooks, renders the four analysis signals as separate cards and lists a league's current matchday, with a toggle to the next one, following several matches live over Socket.io. Docker packaging (phase 7) is pending.
+> **Status:** phases 1-5 implemented. The UI is responsive (mobile-first), bilingual (ES/EN with instant switching), consumes the API through pure service wrappers and hooks, renders the three analysis signals as separate cards and lists a league's current matchday, with a toggle to the next one, following several matches live over Socket.io. Docker packaging (phase 7) is pending.
 
 ## Tech stack
 

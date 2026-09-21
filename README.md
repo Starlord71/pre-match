@@ -12,8 +12,8 @@ This monorepo holds the backend API and the web client of a tool that helps anal
 
 ## Current status
 
-- **Done (server):** Express API, SQLite with migrations and cache, football-data.org client with rate limiting, league sync (`POST /api/sync/:league`), the teams endpoint (`GET /api/teams?league=`), the current and next matchday (`GET /api/matches?league=`), the four-signal analysis engine (`GET /api/analysis`) and live match updates over Socket.io.
-- **Done (client):** React UI (responsive + ES/EN i18n) that lists a league's teams, shows the four signals as separate cards and follows live matches over Socket.io.
+- **Done (server):** Express API, SQLite with migrations and cache, football-data.org client with rate limiting, league sync (`POST /api/sync/:league`), the teams endpoint (`GET /api/teams?league=`), the current and next matchday (`GET /api/matches?league=`), the three-signal analysis engine plus real-fixture resolution (`GET /api/analysis`) and live match updates over Socket.io.
+- **Done (client):** React UI (responsive + ES/EN i18n) that lists a league's teams, shows the three signals as separate cards and follows live matches over Socket.io.
 - **Pending:** Docker packaging (phase 7).
 - **API reference:** see [`server/README.md`](server/README.md).
 

@@ -19,14 +19,45 @@
   color: var(--text-muted);
 }
 
-.analysis-page__grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1.25rem;
+.analysis-page__fixture {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0.9rem 1.1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--surface-muted);
 }
 
-@media (max-width: 640px) {
-  .analysis-page__grid {
-    grid-template-columns: 1fr;
-  }
+.analysis-page__fixture-score {
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+}
+
+.analysis-page__fixture-meta {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.analysis-page__fixture--none {
+  font-size: 0.9rem;
+  font-style: italic;
+  color: var(--text-muted);
+}
+
+/*
+ * Stacked, not a grid: the signals have naturally different content heights
+ * (some list many stats per team, others almost none), so putting them side
+ * by side in columns always leaves an awkward gap under the shorter one no
+ * matter how the content is tuned. Full-width sections give each signal all
+ * the room it needs and nothing to misalign against.
+ */
+.analysis-page__grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
 }

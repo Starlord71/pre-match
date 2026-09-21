@@ -5,6 +5,7 @@ import { useLiveMatches } from '../hooks/useLiveMatches.js'
 import { useFollowedMatches } from '../hooks/useFollowedMatches.js'
 import { LIVE_STATUSES } from '../constants/matchStatus.js'
 import { groupMatchesByDay, formatDayRange, formatDayLabel } from '../utils/matchdays.js'
+import { formatDateTime, formatTime } from '../utils/formatDate.js'
 import { playNotificationSound } from '../utils/notificationSound.js'
 import { notify, requestPermission } from '../services/notifications.service.js'
 import LiveIndicator from './LiveIndicator.jsx'
@@ -120,7 +121,7 @@ function LiveMatchesPanel({ league }) {
             <span className="live-match__score">{`${match.fullTimeHome} – ${match.fullTimeAway}`}</span>
           ) : null}
           <p className="live-match__meta">
-            <span>{`${t('live.kickoff')}: ${new Date(match.utcDate).toLocaleTimeString()}`}</span>
+            <span>{`${t('live.kickoff')}: ${formatTime(match.utcDate, i18n.language)}`}</span>
             <span>{t(`status.${match.status}`, { defaultValue: match.status })}</span>
           </p>
         </div>
@@ -129,7 +130,7 @@ function LiveMatchesPanel({ league }) {
           {isLive ? <LiveIndicator live label={t('live.badge')} /> : null}
           {!isLive && isUpcoming ? (
             <span className="live-match__state">
-              {t('live.upcoming', { date: new Date(match.utcDate).toLocaleString(i18n.language) })}
+              {t('live.upcoming', { date: formatDateTime(match.utcDate, i18n.language) })}
             </span>
           ) : null}
           {!isLive && !isUpcoming && followed && !hasUpdate && !hasScore ? (

@@ -71,7 +71,7 @@ describe('integration flows', () => {
     subscribeToMatches.mockReturnValue(vi.fn())
   })
 
-  it('flows from league to teams to the four separate analysis cards', async () => {
+  it('flows from league to teams to the three separate analysis cards', async () => {
     const user = userEvent.setup()
     render(<App />)
 
@@ -81,10 +81,10 @@ describe('integration flows', () => {
     await waitFor(() => expect(screen.getByText('Forma reciente')).toBeInTheDocument())
 
     expect(screen.getByText('Local vs visitante')).toBeInTheDocument()
-    expect(screen.getByText('Historial directo')).toBeInTheDocument()
     expect(screen.getByText('Congestión de calendario')).toBeInTheDocument()
     expect(screen.queryByText(/score/i)).not.toBeInTheDocument()
-    expect(getAnalysis).toHaveBeenCalledWith({ home: 1, away: 2, date: expect.any(String) })
+    // ExplorerPage no longer invents a date; the backend resolves the real fixture.
+    expect(getAnalysis).toHaveBeenCalledWith({ home: 1, away: 2, date: undefined })
   })
 
   it('lists the league matchday, follows a match and reflects a live update without refetching', async () => {
@@ -131,12 +131,12 @@ describe('integration flows', () => {
     await waitFor(() => expect(screen.getByText('Recent form')).toBeInTheDocument())
 
     const cardNode = screen.getByText('Recent form')
-    expect(screen.getByText('Head-to-head')).toBeInTheDocument()
+    expect(screen.getByText('Schedule congestion')).toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: /Español/i }))
 
     expect(screen.getByText('Forma reciente')).toBe(cardNode)
-    expect(screen.getByText('Historial directo')).toBeInTheDocument()
+    expect(screen.getByText('Congestión de calendario')).toBeInTheDocument()
     expect(window.localStorage.getItem('preferredLanguage')).toBe('es')
   })
 })

@@ -4,7 +4,7 @@
 
 Cliente web de la herramienta de análisis pre-partido.
 
-> **Estado:** fases 1-5 implementadas. La UI es responsive (mobile-first), bilingüe (ES/EN con cambio instantáneo), consume la API mediante wrappers de servicios puros y hooks, renderiza las cuatro señales de análisis como tarjetas separadas y lista la jornada actual de una liga, con un botón para pasar a la próxima, siguiendo varios partidos en vivo vía Socket.io. El empaquetado Docker (fase 7) sigue pendiente.
+> **Estado:** fases 1-5 implementadas. La UI es responsive (mobile-first), bilingüe (ES/EN con cambio instantáneo), consume la API mediante wrappers de servicios puros y hooks, renderiza las tres señales de análisis como tarjetas separadas y lista la jornada actual de una liga, con un botón para pasar a la próxima, siguiendo varios partidos en vivo vía Socket.io. El empaquetado Docker (fase 7) sigue pendiente.
 
 ## Stack tecnológico
 

@@ -4,7 +4,7 @@
 
 API backend de la herramienta de análisis pre-partido.
 
-> **Estado:** fases 1-5 implementadas y cubiertas por tests: base de Express, SQLite con migraciones, cliente de football-data.org con rate limiting, el flujo de sync, el motor de análisis de cuatro señales, las actualizaciones de partidos en vivo vía Socket.io y los endpoints de equipos y partidos que consume el cliente en React. El empaquetado Docker (fase 7) sigue _WIP_.
+> **Estado:** fases 1-5 implementadas y cubiertas por tests: base de Express, SQLite con migraciones, cliente de football-data.org con rate limiting, el flujo de sync, el motor de análisis de tres señales, las actualizaciones de partidos en vivo vía Socket.io y los endpoints de equipos y partidos que consume el cliente en React. El empaquetado Docker (fase 7) sigue _WIP_.
 
 ## Stack tecnológico
 
@@ -77,12 +77,12 @@ server/
 │   ├── services/                 # Lógica de negocio
 │   │   ├── sync.service.js
 │   │   ├── livePoller.service.js
-│   │   └── analysisEngine/       # Las cuatro señales independientes
+│   │   └── analysisEngine/       # Las tres señales independientes + resolución de fixture
 │   │       ├── index.js
 │   │       ├── form.service.js
 │   │       ├── homeAway.service.js
-│   │       ├── h2h.service.js
-│   │       └── schedule.service.js
+│   │       ├── schedule.service.js
+│   │       └── fixture.service.js
 │   ├── repositories/             # Acceso a datos (únicos módulos que tocan SQL)
 │   │   ├── teams.repository.js
 │   │   ├── matches.repository.js
@@ -113,7 +113,7 @@ URL base: `http://localhost:3000` (configurable vía `PORT`).
 | `GET`  | `/api/teams?league=`              | Equipos que jugaron en una liga      |
 | `GET`  | `/api/matches?league=`            | Jornada actual + próxima de la liga con sus partidos |
 | `POST` | `/api/sync/:league`               | Sincroniza una liga desde football-data |
-| `GET`  | `/api/analysis?home=&away=&date=` | Cuatro señales para un partido       |
+| `GET`  | `/api/analysis?home=&away=`       | Tres señales para un enfrentamiento, más el partido real resuelto |
 
 ### `GET /health`
 
@@ -196,13 +196,29 @@ URL base: `http://localhost:3000` (configurable vía `PORT`).
 
 ### `GET /api/analysis?home=&away=&date=`
 
-`home` y `away` son ids de equipo y `date` es el kickoff ISO del partido analizado. Las cuatro señales se devuelven como objetos separados y nunca se fusionan en una única puntuación. Parámetros inválidos o ausentes devuelven `400`.
+`home` y `away` son ids de equipo. `date` es opcional: si se da, es el kickoff ISO contra el que se analiza; si se omite, el servidor resuelve el partido real entre los dos equipos (el próximo por jugarse, o si no el más reciente ya jugado) y usa esa fecha. Las tres señales se devuelven como objetos separados y nunca se fusionan en una única puntuación. `home`/`away` inválidos o ausentes devuelven `400`.
 
 ```json
 {
   "homeTeamId": 1,
   "awayTeamId": 2,
   "matchDate": "2026-04-01T15:00:00Z",
+  "fixture": {
+    "id": 500,
+    "league": "PL",
+    "utcDate": "2026-04-01T15:00:00Z",
+    "status": "FINISHED",
+    "matchday": 30,
+    "homeTeamId": 1,
+    "awayTeamId": 2,
+    "winner": "HOME_TEAM",
+    "duration": "REGULAR",
+    "fullTimeHome": 2,
+    "fullTimeAway": 1,
+    "halfTimeHome": 1,
+    "halfTimeAway": 0,
+    "updatedAt": "2026-04-01T17:00:00.000Z"
+  },
   "form": {
     "home": {
       "teamId": 1,
@@ -222,17 +238,6 @@ URL base: `http://localhost:3000` (configurable vía `PORT`).
     "home": { "teamId": 1, "venue": "HOME", "matchesPlayed": 10, "wins": 7, "draws": 2, "losses": 1, "points": 23, "pointsPerGame": 2.3, "winRate": 0.7, "goalsFor": 21, "goalsAgainst": 8, "goalDifference": 13 },
     "away": { "teamId": 2, "venue": "AWAY", "matchesPlayed": 10, "wins": 3, "draws": 3, "losses": 4, "points": 12, "pointsPerGame": 1.2, "winRate": 0.3, "goalsFor": 11, "goalsAgainst": 14, "goalDifference": -3 }
   },
-  "h2h": {
-    "teamAId": 1,
-    "teamBId": 2,
-    "matchesAnalyzed": 4,
-    "minimumMatches": 3,
-    "insufficientData": false,
-    "meetings": [
-      { "matchId": 12, "utcDate": "2025-11-02T15:00:00Z", "homeTeamId": 2, "awayTeamId": 1, "homeScore": 1, "awayScore": 2, "resultForTeamA": "W" }
-    ],
-    "summary": { "teamAWins": 2, "teamBWins": 1, "draws": 1, "goalsA": 6, "goalsB": 4 }
-  },
   "schedule": {
     "home": { "teamId": 1, "upcomingMatchDate": "2026-04-01T15:00:00Z", "windowDays": 14, "threshold": 3, "matchesInWindow": 2, "congested": false, "daysSinceLastMatch": 4.2, "matches": [{ "matchId": 37, "utcDate": "2026-03-28T15:00:00Z", "daysBefore": 4.2, "venue": "HOME" }] },
     "away": { "teamId": 2, "upcomingMatchDate": "2026-04-01T15:00:00Z", "windowDays": 14, "threshold": 3, "matchesInWindow": 3, "congested": true, "daysSinceLastMatch": 2.8, "matches": [] }
@@ -240,7 +245,9 @@ URL base: `http://localhost:3000` (configurable vía `PORT`).
 }
 ```
 
-Cuando una señal carece de historial suficiente lo dice explícitamente en lugar de adivinar: `form.weightedScore` es `null` con cero partidos analizados y `h2h.insufficientData` es `true` por debajo del mínimo de enfrentamientos.
+`fixture` es `null` cuando los dos equipos no tienen ningún enfrentamiento registrado (pasado o futuro) en las ligas sincronizadas. Cuando una señal carece de historial suficiente lo dice explícitamente en lugar de adivinar: `form.weightedScore` es `null` con cero partidos analizados.
+
+Hubo una cuarta señal, historial directo (head-to-head): solo tenía los partidos de la temporada actual ya sincronizados para trabajar, y como dos equipos de la misma liga se cruzan como mucho dos veces por temporada, quedaba por debajo de su propio mínimo en prácticamente todos los casos reales. Se intentó enriquecerla con el endpoint cruzado `/matches/{id}/head2head` de football-data.org, pero ese endpoint resultó faltarle partidos reales y mezclar sin avisar encuentros de otras competiciones (copas, torneos continentales) — ni confiable para mostrarlo como un hecho, ni útil como señal que casi siempre decía "datos insuficientes". Se eliminó por completo.
 
 Las rutas desconocidas devuelven `404 { "error": "Not Found" }`. Los errores se gestionan con un middleware central que devuelve `{ "error": "<mensaje>" }`.
 

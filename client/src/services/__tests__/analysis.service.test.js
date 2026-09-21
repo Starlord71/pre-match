@@ -16,7 +16,7 @@ describe('analysis.service', () => {
   })
 
   it('builds the query string from home, away and date', async () => {
-    fetch.mockResolvedValue(jsonResponse({ form: {}, homeAway: {}, h2h: {}, schedule: {} }))
+    fetch.mockResolvedValue(jsonResponse({ form: {}, homeAway: {}, schedule: {} }))
 
     await getAnalysis({ home: 1, away: 2, date: '2026-04-01T15:00:00Z' })
 
@@ -27,7 +27,7 @@ describe('analysis.service', () => {
   })
 
   it('returns the parsed analysis body unchanged', async () => {
-    const analysis = { homeTeamId: 1, awayTeamId: 2, form: { home: {} }, h2h: { insufficientData: true } }
+    const analysis = { homeTeamId: 1, awayTeamId: 2, form: { home: {} } }
     fetch.mockResolvedValue(jsonResponse(analysis))
 
     await expect(

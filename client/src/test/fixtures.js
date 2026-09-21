@@ -13,6 +13,16 @@ export const analysisFixture = {
   homeTeamId: 1,
   awayTeamId: 2,
   matchDate: '2026-04-01T15:00:00Z',
+  fixture: {
+    id: 500,
+    utcDate: '2026-04-01T15:00:00Z',
+    status: 'FINISHED',
+    matchday: 30,
+    homeTeamId: 1,
+    awayTeamId: 2,
+    fullTimeHome: 2,
+    fullTimeAway: 1,
+  },
   form: {
     home: {
       teamId: 1,
@@ -72,25 +82,6 @@ export const analysisFixture = {
       goalDifference: -3,
     },
   },
-  h2h: {
-    teamAId: 1,
-    teamBId: 2,
-    matchesAnalyzed: 4,
-    minimumMatches: 3,
-    insufficientData: false,
-    meetings: [
-      {
-        matchId: 12,
-        utcDate: '2025-11-02T15:00:00Z',
-        homeTeamId: 2,
-        awayTeamId: 1,
-        homeScore: 1,
-        awayScore: 2,
-        resultForTeamA: 'W',
-      },
-    ],
-    summary: { teamAWins: 2, teamBWins: 1, draws: 1, goalsA: 6, goalsB: 4 },
-  },
   schedule: {
     home: {
       teamId: 1,
@@ -115,48 +106,22 @@ export const analysisFixture = {
   },
 }
 
-/** Same fixture but with head-to-head below the minimum. */
-export const insufficientH2hAnalysis = {
+/** Same fixture but the analyzed match has not been played yet. */
+export const upcomingFixtureAnalysis = {
   ...analysisFixture,
-  h2h: {
-    teamAId: 1,
-    teamBId: 2,
-    matchesAnalyzed: 2,
-    minimumMatches: 3,
-    insufficientData: true,
-    meetings: [],
+  fixture: {
+    id: 501,
+    utcDate: '2026-12-20T15:00:00Z',
+    status: 'SCHEDULED',
+    matchday: 18,
+    homeTeamId: 1,
+    awayTeamId: 2,
+    fullTimeHome: null,
+    fullTimeAway: null,
   },
 }
 
-/**
- * Insufficient local history enriched with the cross-season aggregate: the
- * `insufficientData` flag stays and the extra block is additive.
- */
-export const insufficientH2hAnalysisWithExternalHistory = {
-  ...insufficientH2hAnalysis,
-  h2h: {
-    ...insufficientH2hAnalysis.h2h,
-    meetings: [
-      {
-        matchId: 25,
-        utcDate: '2026-02-07T15:00:00Z',
-        homeTeamId: 2,
-        awayTeamId: 1,
-        homeScore: 0,
-        awayScore: 0,
-        resultForTeamA: 'D',
-      },
-    ],
-    externalHistory: {
-      numberOfMatches: 6,
-      totalGoals: 8,
-      teamAWins: 2,
-      teamBWins: 1,
-      draws: 3,
-      goalsA: 5,
-      goalsB: 3,
-    },
-  },
-}
+/** Same fixture but the two teams have no real match on record. */
+export const noFixtureAnalysis = { ...analysisFixture, fixture: null }
 
 export const teamsFixture = [homeTeam, awayTeam]

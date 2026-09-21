@@ -7,15 +7,16 @@ import { getAnalysis } from '../services/analysis.service.js'
  * URL construction lives in `analysis.service.js`. The request key lets the
  * hook derive loading/error from the last completed request instead of writing
  * state synchronously inside the effect.
- * @param {object} fixture Fixture to analyze.
- * @param {number|string|null} fixture.home Home team id.
- * @param {number|string|null} fixture.away Away team id.
- * @param {string|null} fixture.date ISO kickoff date.
+ * @param {object} pairing Teams to analyze.
+ * @param {number|string|null} pairing.home Home team id.
+ * @param {number|string|null} pairing.away Away team id.
+ * @param {string|null} [pairing.date] ISO kickoff date. When omitted, the
+ *   backend resolves the real fixture between the two teams, if any.
  * @returns {{analysis: object|null, loading: boolean, error: Error|null}} Analysis state.
  */
 export function useAnalysis({ home, away, date }) {
   const [result, setResult] = useState({ key: null, analysis: null, error: null })
-  const key = home && away && date ? `${home}:${away}:${date}` : null
+  const key = home && away ? `${home}:${away}:${date ?? ''}` : null
 
   useEffect(() => {
     if (!key) return undefined

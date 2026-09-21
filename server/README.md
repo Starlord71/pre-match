@@ -4,7 +4,7 @@
 
 Backend API for the pre-match analysis tool.
 
-> **Status:** phases 1-5 implemented and covered by tests: Express base, SQLite with migrations, football-data.org client with rate limiting, the sync flow, the four-signal analysis engine, real-time match updates over Socket.io and the teams and matches endpoints consumed by the React client. Docker packaging (phase 7) is still _WIP_.
+> **Status:** phases 1-5 implemented and covered by tests: Express base, SQLite with migrations, football-data.org client with rate limiting, the sync flow, the three-signal analysis engine, real-time match updates over Socket.io and the teams and matches endpoints consumed by the React client. Docker packaging (phase 7) is still _WIP_.
 
 ## Tech stack
 
@@ -77,12 +77,12 @@ server/
 │   ├── services/                 # Business logic
 │   │   ├── sync.service.js
 │   │   ├── livePoller.service.js
-│   │   └── analysisEngine/       # The four independent signals
+│   │   └── analysisEngine/       # The three independent signals + fixture resolution
 │   │       ├── index.js
 │   │       ├── form.service.js
 │   │       ├── homeAway.service.js
-│   │       ├── h2h.service.js
-│   │       └── schedule.service.js
+│   │       ├── schedule.service.js
+│   │       └── fixture.service.js
 │   ├── repositories/             # Data access (only modules that touch SQL)
 │   │   ├── teams.repository.js
 │   │   ├── matches.repository.js
@@ -113,7 +113,7 @@ Base URL: `http://localhost:3000` (configurable via `PORT`).
 | `GET`  | `/api/teams?league=`                   | Teams that played in a league      |
 | `GET`  | `/api/matches?league=`                 | League current + next matchday with their matches |
 | `POST` | `/api/sync/:league`                    | Sync one league from football-data |
-| `GET`  | `/api/analysis?home=&away=&date=`      | Four signals for a fixture         |
+| `GET`  | `/api/analysis?home=&away=`            | Three signals for a pairing, plus the resolved real fixture |
 
 ### `GET /health`
 
@@ -196,13 +196,29 @@ Base URL: `http://localhost:3000` (configurable via `PORT`).
 
 ### `GET /api/analysis?home=&away=&date=`
 
-`home` and `away` are team ids and `date` is the ISO kickoff of the analyzed match. The four signals are returned as separate objects and are never fused into a single score. Invalid or missing parameters return `400`.
+`home` and `away` are team ids. `date` is optional: when given, it is the ISO kickoff to analyze against; when omitted, the server resolves the real fixture between the two teams (the next one still to be played, otherwise the most recent one already played) and uses its date. The three signals are returned as separate objects and are never fused into a single score. Invalid or missing `home`/`away` return `400`.
 
 ```json
 {
   "homeTeamId": 1,
   "awayTeamId": 2,
   "matchDate": "2026-04-01T15:00:00Z",
+  "fixture": {
+    "id": 500,
+    "league": "PL",
+    "utcDate": "2026-04-01T15:00:00Z",
+    "status": "FINISHED",
+    "matchday": 30,
+    "homeTeamId": 1,
+    "awayTeamId": 2,
+    "winner": "HOME_TEAM",
+    "duration": "REGULAR",
+    "fullTimeHome": 2,
+    "fullTimeAway": 1,
+    "halfTimeHome": 1,
+    "halfTimeAway": 0,
+    "updatedAt": "2026-04-01T17:00:00.000Z"
+  },
   "form": {
     "home": {
       "teamId": 1,
@@ -222,17 +238,6 @@ Base URL: `http://localhost:3000` (configurable via `PORT`).
     "home": { "teamId": 1, "venue": "HOME", "matchesPlayed": 10, "wins": 7, "draws": 2, "losses": 1, "points": 23, "pointsPerGame": 2.3, "winRate": 0.7, "goalsFor": 21, "goalsAgainst": 8, "goalDifference": 13 },
     "away": { "teamId": 2, "venue": "AWAY", "matchesPlayed": 10, "wins": 3, "draws": 3, "losses": 4, "points": 12, "pointsPerGame": 1.2, "winRate": 0.3, "goalsFor": 11, "goalsAgainst": 14, "goalDifference": -3 }
   },
-  "h2h": {
-    "teamAId": 1,
-    "teamBId": 2,
-    "matchesAnalyzed": 4,
-    "minimumMatches": 3,
-    "insufficientData": false,
-    "meetings": [
-      { "matchId": 12, "utcDate": "2025-11-02T15:00:00Z", "homeTeamId": 2, "awayTeamId": 1, "homeScore": 1, "awayScore": 2, "resultForTeamA": "W" }
-    ],
-    "summary": { "teamAWins": 2, "teamBWins": 1, "draws": 1, "goalsA": 6, "goalsB": 4 }
-  },
   "schedule": {
     "home": { "teamId": 1, "upcomingMatchDate": "2026-04-01T15:00:00Z", "windowDays": 14, "threshold": 3, "matchesInWindow": 2, "congested": false, "daysSinceLastMatch": 4.2, "matches": [{ "matchId": 37, "utcDate": "2026-03-28T15:00:00Z", "daysBefore": 4.2, "venue": "HOME" }] },
     "away": { "teamId": 2, "upcomingMatchDate": "2026-04-01T15:00:00Z", "windowDays": 14, "threshold": 3, "matchesInWindow": 3, "congested": true, "daysSinceLastMatch": 2.8, "matches": [] }
@@ -240,7 +245,9 @@ Base URL: `http://localhost:3000` (configurable via `PORT`).
 }
 ```
 
-When a signal lacks enough history, it says so explicitly instead of guessing: `form.weightedScore` is `null` with zero matches analyzed and `h2h.insufficientData` is `true` below the minimum number of meetings.
+`fixture` is `null` when the two teams have no meeting on record (past or future) in the synced leagues. When a signal lacks enough history, it says so explicitly instead of guessing: `form.weightedScore` is `null` with zero matches analyzed.
+
+There used to be a fourth signal, head-to-head: it only ever had the current season's locally synced matches to work with, and since two teams in the same league meet at most twice a season, it was below its own minimum in essentially every real case. An attempt to enrich it with football-data.org's cross-season `/matches/{id}/head2head` endpoint was removed after that endpoint turned out to both miss real meetings and silently mix in matches from other competitions (cups, continental) — not reliable enough to show as fact, and not useful enough to keep as a signal that (almost) always said "not enough data."
 
 Unknown routes return `404 { "error": "Not Found" }`. Errors are handled by a central error middleware returning `{ "error": "<message>" }`.
 

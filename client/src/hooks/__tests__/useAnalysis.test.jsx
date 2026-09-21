@@ -11,10 +11,19 @@ describe('useAnalysis', () => {
     vi.clearAllMocks()
   })
 
-  it('does not fetch until home, away and date are all present', () => {
+  it('does not fetch until home and away are both present', () => {
     renderHook(() => useAnalysis({ home: null, away: null, date: null }))
 
     expect(getAnalysis).not.toHaveBeenCalled()
+  })
+
+  it('fetches even without a date, letting the backend resolve the real fixture', async () => {
+    getAnalysis.mockResolvedValue(analysisFixture)
+
+    const { result } = renderHook(() => useAnalysis({ home: 1, away: 2 }))
+
+    expect(getAnalysis).toHaveBeenCalledWith({ home: 1, away: 2, date: undefined })
+    await waitFor(() => expect(result.current.analysis).not.toBeNull())
   })
 
   it('fetches the fixture and exposes the analysis', async () => {

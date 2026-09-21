@@ -35,32 +35,15 @@ export const externalTeamsResponseSchema = z.object({
 /**
  * `GET /v4/matches/{id}/head2head` response.
  *
- * `aggregates` is the cross-season summary documented by football-data v4;
- * `.passthrough()` stays as a safety net for undocumented fields and for the
- * day this is verified against a recorded fixture.
+ * Not currently used by the analysis engine: this endpoint turned out to both
+ * miss real meetings and silently mix in matches from other competitions
+ * (cups, continental) without saying so, so it was not reliable enough to
+ * show as head-to-head fact. Kept here as a validated client method in case a
+ * future use needs it. `.passthrough()` keeps any other field the API sends
+ * without failing on it.
  */
 export const externalH2HResponseSchema = z
   .object({
     matches: z.array(externalMatchSchema),
-    aggregates: z
-      .object({
-        numberOfMatches: z.number().int().nonnegative(),
-        totalGoals: z.number().int().nonnegative(),
-        homeTeam: z.object({
-          id: z.number(),
-          name: z.string(),
-          wins: z.number(),
-          draws: z.number(),
-          losses: z.number(),
-        }),
-        awayTeam: z.object({
-          id: z.number(),
-          name: z.string(),
-          wins: z.number(),
-          draws: z.number(),
-          losses: z.number(),
-        }),
-      })
-      .optional(),
   })
   .passthrough();

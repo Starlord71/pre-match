@@ -1,22 +1,25 @@
 import { useTranslation } from 'react-i18next'
 import { useAnalysis } from '../hooks/useAnalysis.js'
+import { formatDateTime } from '../utils/formatDate.js'
 import FormCard from '../components/FormCard.jsx'
 import HomeAwayCard from '../components/HomeAwayCard.jsx'
-import H2HCard from '../components/H2HCard.jsx'
 import ScheduleCongestionCard from '../components/ScheduleCongestionCard.jsx'
 import './AnalysisPage.css'
 
 /**
- * Match analysis view: renders the four signals as independent cards.
+ * Match analysis view: renders the three signals as independent cards.
  * @param {object} props Component props.
- * @param {object} props.selection Chosen fixture: `{ league, home, away, date }`.
+ * @param {object} props.selection Chosen pairing: `{ league, home, away }`. The
+ *   real fixture (date, matchday, result if already played) is resolved by the
+ *   backend and comes back as `analysis.fixture`.
  * @param {() => void} props.onBack Returns to the explorer.
  * @returns {JSX.Element} The analysis page.
  */
 function AnalysisPage({ selection, onBack }) {
-  const { t } = useTranslation()
-  const { home, away, date, league } = selection
-  const { analysis, loading, error } = useAnalysis({ home: home.id, away: away.id, date })
+  const { t, i18n } = useTranslation()
+  const { home, away, league } = selection
+  const { analysis, loading, error } = useAnalysis({ home: home.id, away: away.id })
+  const fixture = analysis?.fixture
 
   return (
     <section className="analysis-page">
@@ -29,10 +32,27 @@ function AnalysisPage({ selection, onBack }) {
           <span>{home.name}</span> <span className="analysis-page__vs">{t('analysis.vs')}</span>{' '}
           <span>{away.name}</span>
         </h1>
-        <p className="page-subtitle">
-          {t(`leagues.${league}`)} · {new Date(date).toLocaleString()}
-        </p>
+        <p className="page-subtitle">{t(`leagues.${league}`)}</p>
       </header>
+
+      {fixture ? (
+        <div className="analysis-page__fixture">
+          {fixture.fullTimeHome !== null && fixture.fullTimeAway !== null ? (
+            <span className="analysis-page__fixture-score">
+              {`${fixture.fullTimeHome} – ${fixture.fullTimeAway}`}
+            </span>
+          ) : null}
+          <span className="analysis-page__fixture-meta">
+            {t(`status.${fixture.status}`, { defaultValue: fixture.status })}
+            {' · '}
+            {formatDateTime(fixture.utcDate, i18n.language)}
+            {fixture.matchday ? ` · ${t('live.matchday', { matchday: fixture.matchday })}` : ''}
+          </span>
+        </div>
+      ) : null}
+      {analysis && !fixture ? (
+        <p className="analysis-page__fixture analysis-page__fixture--none">{t('analysis.noFixture')}</p>
+      ) : null}
 
       {loading ? (
         <p className="explorer__status" role="status">
@@ -51,7 +71,6 @@ function AnalysisPage({ selection, onBack }) {
           <div className="analysis-page__grid">
             <FormCard form={analysis.form} homeTeam={home} awayTeam={away} />
             <HomeAwayCard homeAway={analysis.homeAway} homeTeam={home} awayTeam={away} />
-            <H2HCard h2h={analysis.h2h} homeTeam={home} awayTeam={away} />
             <ScheduleCongestionCard schedule={analysis.schedule} homeTeam={home} awayTeam={away} />
           </div>
         </>

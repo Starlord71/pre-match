@@ -63,7 +63,7 @@ function ExplorerPage({ onAnalyze }) {
 
     const home = teams.find((team) => String(team.id) === homeId)
     const away = teams.find((team) => String(team.id) === awayId)
-    onAnalyze({ league, home, away, date: new Date().toISOString() })
+    onAnalyze({ league, home, away })
   }
 
   return (

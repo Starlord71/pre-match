@@ -45,7 +45,8 @@
     "vs": "vs",
     "loading": "Calculando las señales…",
     "error": "No pudimos calcular el análisis.",
-    "signalsNote": "Cada señal se muestra por separado; nunca se combinan en un único resultado."
+    "signalsNote": "Cada señal se muestra por separado; nunca se combinan en un único resultado.",
+    "noFixture": "No hay un partido programado entre estos equipos en las ligas soportadas."
   },
   "form": {
     "title": "Forma reciente",
@@ -71,24 +72,6 @@
     "goalsAgainst": "Goles en contra",
     "goalDifference": "Diferencia de gol",
     "noData": "Sin partidos en esta condición."
-  },
-  "h2h": {
-    "title": "Historial directo",
-    "subtitle": "Enfrentamientos previos entre los dos equipos.",
-    "matchesAnalyzed": "Enfrentamientos",
-    "minimum": "Mínimo requerido",
-    "insufficient": "Datos insuficientes: se registran {{matches}} de {{minimum}} enfrentamientos como mínimo.",
-    "wins": "Victorias de {{team}}",
-    "draws": "Empates",
-    "goals": "Goles de {{team}}",
-    "externalHistory": {
-      "title": "Historial completo entre ambos equipos",
-      "matches": "Enfrentamientos",
-      "totalGoals": "Goles totales",
-      "wins": "Victorias de {{team}}",
-      "draws": "Empates",
-      "goals": "Goles de {{team}}"
-    }
   },
   "schedule": {
     "title": "Congestión de calendario",
