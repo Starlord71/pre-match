@@ -4,7 +4,7 @@
 
 Cliente web de la herramienta de análisis pre-partido.
 
-> **Estado:** fases 1-5 y 8 implementadas. La UI es responsive (mobile-first), bilingüe (ES/EN con cambio instantáneo), consume la API mediante wrappers de servicios puros y hooks, renderiza las tres señales de análisis como tarjetas separadas y lista la jornada actual de una liga, con un botón para pasar a la próxima, siguiendo varios partidos en vivo vía Socket.io. Se puede guardar un equipo favorito desde un modal que nunca abandona el explorador, con un banner en el explorador y auto-seguimiento en vivo. El empaquetado Docker (fase 7) sigue pendiente.
+> **Estado:** todas las fases implementadas. La UI es responsive (mobile-first), bilingüe (ES/EN con cambio instantáneo), consume la API mediante wrappers de servicios puros y hooks, renderiza las tres señales de análisis como tarjetas separadas y lista la jornada actual de una liga, con un botón para pasar a la próxima, siguiendo varios partidos en vivo vía Socket.io. Se puede guardar un equipo favorito desde un modal que nunca abandona el explorador, con un banner en el explorador y auto-seguimiento en vivo. También hay un aviso cuando el backend está sirviendo su dataset de demostración generado en vez de datos reales.
 
 ## Stack tecnológico
 
@@ -93,6 +93,7 @@ análisis reabre el modal en vez de dejar un explorador vacío.
 - **URL base de la API:** `VITE_API_URL` (por defecto `http://localhost:3000`), leída en `src/services/http.js`. El servidor habilita CORS, así que no hace falta proxy en desarrollo.
 - **Idioma:** ambos bundles de locales se importan estáticamente y i18next inicializa de forma síncrona; la elección se persiste en `localStorage` bajo `preferredLanguage`.
 - **Equipo favorito:** persistido bajo `favoriteTeam`; el aviso del header que sugiere elegir uno se cierra para siempre (`favoriteHintDismissed`) al abrirlo o cerrarlo. Las notificaciones de escritorio para actualizaciones en vivo son opt-in y se persisten bajo `notificationsEnabled`, compartido por el panel en vivo y el auto-seguimiento del favorito.
+- **Aviso de datos demo:** `useDemoData` lee `GET /health` una vez al cargar; `DemoDataBanner` muestra un aviso descartable (solo para la sesión, no persistido) mientras el flag `demoData` del backend sea `true`.
 
 ## Documentación relacionada
 

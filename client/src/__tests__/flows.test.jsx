@@ -14,6 +14,7 @@ vi.mock('../services/teams.service.js', () => ({ getTeams: vi.fn() }))
 vi.mock('../services/matches.service.js', () => ({ getMatches: vi.fn(), getTeamMatches: vi.fn() }))
 vi.mock('../services/analysis.service.js', () => ({ getAnalysis: vi.fn() }))
 vi.mock('../services/sockets.service.js', () => ({ subscribeToMatches: vi.fn(() => vi.fn()) }))
+vi.mock('../services/health.service.js', () => ({ getHealth: vi.fn(async () => ({ demoData: false })) }))
 
 const teams = [
   { id: 1, name: 'Home United' },

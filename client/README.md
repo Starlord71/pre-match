@@ -4,7 +4,7 @@
 
 Web client for the pre-match analysis tool.
 
-> **Status:** phases 1-5 and 8 implemented. The UI is responsive (mobile-first), bilingual (ES/EN with instant switching), consumes the API through pure service wrappers and hooks, renders the three analysis signals as separate cards and lists a league's current matchday, with a toggle to the next one, following several matches live over Socket.io. A favorite team can be saved from a modal that never leaves the explorer, with an explorer banner and automatic live following. Docker packaging (phase 7) is pending.
+> **Status:** all phases implemented. The UI is responsive (mobile-first), bilingual (ES/EN with instant switching), consumes the API through pure service wrappers and hooks, renders the three analysis signals as separate cards and lists a league's current matchday, with a toggle to the next one, following several matches live over Socket.io. A favorite team can be saved from a modal that never leaves the explorer, with an explorer banner and automatic live following. A banner also shows when the backend is serving its generated demo dataset instead of real data.
 
 ## Tech stack
 
@@ -91,6 +91,7 @@ so clicking "Back" from the analysis page reopens the modal instead of landing o
 - **API base URL:** `VITE_API_URL` (default `http://localhost:3000`), read in `src/services/http.js`. The server enables CORS, so no dev proxy is needed.
 - **Language:** both locale bundles are imported statically and i18next initializes synchronously; the choice is persisted in `localStorage` under `preferredLanguage`.
 - **Favorite team:** persisted under `favoriteTeam`; a one-time header hint suggesting to pick one is dismissed for good (`favoriteHintDismissed`) once opened or closed. Desktop notifications for live updates are opt-in and persisted under `notificationsEnabled`, shared by the live panel and the favorite team's auto-follow.
+- **Demo data banner:** `useDemoData` reads `GET /health` once on load; `DemoDataBanner` shows a dismissible (session-only, not persisted) notice while the backend's `demoData` flag is `true`.
 
 ## Related documentation
 

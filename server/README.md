@@ -4,7 +4,7 @@
 
 Backend API for the pre-match analysis tool.
 
-> **Status:** phases 1-5 and 8 implemented and covered by tests: Express base, SQLite with migrations, football-data.org client with rate limiting, the sync flow, the three-signal analysis engine, real-time match updates over Socket.io, the teams and matches endpoints consumed by the React client, and a team's full fixture list for the favorite-team feature. Docker packaging (phase 7) is still _WIP_.
+> **Status:** all phases implemented and covered by tests: Express base, SQLite with migrations, football-data.org client with rate limiting, the sync flow, the three-signal analysis engine, real-time match updates over Socket.io, the teams and matches endpoints consumed by the React client, a team's full fixture list for the favorite-team feature, Docker packaging, and a generated demo dataset for when no API key is configured.
 
 ## Tech stack
 
@@ -118,11 +118,15 @@ Base URL: `http://localhost:3000` (configurable via `PORT`).
 
 ### `GET /health`
 
+`demoData` is `true` when the stored teams/matches are the generated demo dataset (negative ids)
+rather than data synced from football-data.org — see [Demo dataset](#demo-dataset) below.
+
 ```json
 {
   "status": "ok",
   "uptime": 12.34,
-  "timestamp": "2026-01-01T00:00:00.000Z"
+  "timestamp": "2026-01-01T00:00:00.000Z",
+  "demoData": false
 }
 ```
 
@@ -284,6 +288,12 @@ one request. An unsupported league or a non-positive team id returns `400`.
 There used to be a fourth signal, head-to-head: it only ever had the current season's locally synced matches to work with, and since two teams in the same league meet at most twice a season, it was below its own minimum in essentially every real case. An attempt to enrich it with football-data.org's cross-season `/matches/{id}/head2head` endpoint was removed after that endpoint turned out to both miss real meetings and silently mix in matches from other competitions (cups, continental) — not reliable enough to show as fact, and not useful enough to keep as a signal that (almost) always said "not enough data."
 
 Unknown routes return `404 { "error": "Not Found" }`. Errors are handled by a central error middleware returning `{ "error": "<message>" }`.
+
+## Demo dataset
+
+When `FOOTBALL_DATA_API_KEY` is not set and the database is empty, `server.js` seeds a demo Premier League dataset right after running migrations, via `services/demoSeed.service.js`: 20 real club names, a round-robin schedule anchored to the current time (past matchdays finished, the current one with a live match plus played and upcoming fixtures, and one matchday fully ahead). The moment a key is configured, any leftover demo rows are purged automatically before anything else runs, so demo and real data never coexist.
+
+Demo rows use negative ids (real football-data.org ids are always positive), which is enough to tell them apart without a schema change — `WHERE id < 0` is exactly `purgeDemoData()`. `GET /health`'s `demoData` field reflects whether any demo team is currently stored, which the client uses to show a banner.
 
 ## Real-time (Socket.io)
 

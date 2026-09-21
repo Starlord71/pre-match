@@ -5,6 +5,7 @@ import ExplorerPage from './pages/ExplorerPage.jsx'
 import AnalysisPage from './pages/AnalysisPage.jsx'
 import FavoriteTeamModal from './components/FavoriteTeamModal.jsx'
 import FavoriteLiveWatcher from './components/FavoriteLiveWatcher.jsx'
+import DemoDataBanner from './components/DemoDataBanner.jsx'
 import { FavoriteTeamProvider, useFavoriteTeam } from './hooks/useFavoriteTeam.js'
 import './App.css'
 
@@ -27,6 +28,7 @@ function AppShell() {
 
   return (
     <div className="app-shell">
+      <DemoDataBanner />
       <Header />
 
       <main className="app-main">

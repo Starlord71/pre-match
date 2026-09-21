@@ -18,6 +18,78 @@ backend keeps durable match history in SQLite, caches raw football-data.org payl
 pushes live score and state changes over Socket.io, polling the external API only while a match is
 actually in play.
 
+## Requirements
+
+- Node.js (LTS).
+- [pnpm](https://pnpm.io/) `11.3.0` (pinned via `packageManager` in `package.json`).
+- A free [football-data.org](https://www.football-data.org/) API key — **optional**. Without one,
+  the server generates a demo Premier League dataset on first run (a banner in the UI makes this
+  obvious), so there is always something to explore. With one, syncing and live polling pull real
+  data instead, and any leftover demo data is removed automatically.
+- [Docker](https://docs.docker.com/get-docker/) (optional) to run the packaged single-container image.
+
+## Build, test and run
+
+```bash
+# 1. Install dependencies for both packages
+pnpm install
+
+# 2. Run the API and the client together in development
+pnpm dev
+```
+
+`pnpm dev` starts both processes at once: the API on `http://localhost:3000` and the client on
+`http://localhost:5173`. It uses `concurrently -k`, so when one process exits the other is stopped
+too. Use `pnpm dev:server` or `pnpm dev:client` to run only one of them.
+
+No `FOOTBALL_DATA_API_KEY` is needed for this: with none configured, the server seeds a demo Premier
+League dataset (past results, a live match and an upcoming matchday) the first time it starts against
+an empty database, and the explorer shows a banner saying so. To sync real data from football-data.org
+instead:
+
+```bash
+# The scripts run with cwd set to server/, so dotenv reads server/.env, not the root .env
+cp server/.env.example server/.env
+# edit server/.env and set FOOTBALL_DATA_API_KEY, then restart pnpm dev
+```
+
+Restarting with a key configured removes the demo data automatically; pick a league in the explorer
+and click "Refresh data" (or `POST /api/sync/:league`) to populate it for real.
+
+| Command | Description |
+| --- | --- |
+| `pnpm dev` | Start the API and the client together. |
+| `pnpm dev:server` / `pnpm dev:client` | Start only the API (watch mode) or only the client. |
+| `pnpm test` | Run the server test suite. |
+| `pnpm --filter client test` | Run the client test suite. |
+| `pnpm lint` | Lint every package. |
+
+### Docker
+
+The whole app also runs as a **single container**: Express serves the built React client, so there
+is no Nginx, and the SQLite database lives in a named volume so it survives restarts.
+
+```bash
+# 1. Create the environment file Compose reads (it is gitignored)
+cp .env.example .env
+
+# 2. Build the image and start the app
+docker compose up --build
+```
+
+The app is then served from `http://localhost:${PORT}` (`3000` by default). Migrations run
+automatically on startup, and with no `FOOTBALL_DATA_API_KEY` set in `.env` a fresh volume seeds the
+same demo Premier League dataset described above — nothing else to do, the explorer is populated
+right away. To sync real data instead, edit `.env`, set `FOOTBALL_DATA_API_KEY` and restart; the demo
+data is removed automatically, and "Refresh data" per league in the explorer (or `POST /api/sync/:league`)
+populates it for real.
+
+| Command | Description |
+| --- | --- |
+| `docker compose up --build` | Build the image and run the API plus the client build on `PORT`. |
+| `docker compose down` | Stop the container; the SQLite volume is kept. |
+| `docker compose down -v` | Stop the container and delete the stored database. |
+
 ## Screenshots
 
 | Explorer | Analysis | Favorite team |
@@ -52,35 +124,6 @@ notification) without following it by hand.
 
 ## Architecture
 
-```mermaid
-flowchart TB
-    subgraph Client["client — React 19 + Vite"]
-        direction TB
-        UI["Pages + components<br/>explorer, analysis cards, live panel, favorite modal"]
-        Hooks["Hooks<br/>useTeams, useMatches, useAnalysis, useLiveMatches, useFavoriteTeam"]
-        CS["Services<br/>http, matches, analysis, sockets"]
-        UI --> Hooks --> CS
-    end
-
-    subgraph Server["server — Express"]
-        direction TB
-        R["routes/"] --> C["controllers/"] --> S["services/<br/>sync, livePoller, analysisEngine"]
-        S --> Repo["repositories/"]
-        S --> Ext["external/<br/>football-data.org client + rate limiter"]
-        C --> Z["schemas/ (Zod)"]
-        C -.-> Sock["sockets/ (Socket.io)"]
-    end
-
-    DB[("SQLite<br/>teams · matches · api_cache")]
-    FD["football-data.org v4"]
-
-    CS -->|"REST /api/*"| R
-    Repo --> DB
-    Ext -->|"<= 10 req/min"| FD
-    Sock -->|"match:update"| CS
-    S -.-> Sock
-```
-
 The server keeps a strict request flow — `routes/` → `controllers/` → `services/` →
 `repositories/` — so only the repositories touch SQL and only `external/` talks to
 football-data.org. The client mirrors that discipline: components never call `fetch` or
@@ -93,15 +136,9 @@ requests.
 | `client` | React 19, Vite 8, i18next, socket.io-client, Vitest + Testing Library | Responsive bilingual web UI: explorer, analysis cards, live panel, favorite team. |
 | Tooling | pnpm workspaces, Vitest, Oxlint | One install for both packages, a test runner per package and a fast linter. |
 
-### Detailed diagrams
-
-The full set lives in [`docs/diagrams`](docs/diagrams), one Markdown file per diagram:
-
-- [Architecture](docs/diagrams/architecture.md): the layers and their responsibilities.
-- [Sync and cache](docs/diagrams/sync-and-cache.md): cache-or-API retrieval, validation and upsert.
-- [Analysis engine](docs/diagrams/analysis-engine.md): fixture resolution and the three independent signals.
-- [Live updates](docs/diagrams/live-updates.md): Socket.io plus the poller bounded to the live window.
-- [Favorite team](docs/diagrams/favorite-team.md): the shared context, the modal and the auto-follow watcher.
+The full architecture diagram, the sequence diagrams for sync/analysis/live updates/favorite team,
+and every screenshot used on this page live in [`docs/diagrams`](docs/diagrams/README.md) and
+[`docs/images`](docs/images).
 
 ## Technical decisions
 
@@ -122,6 +159,8 @@ The full set lives in [`docs/diagrams`](docs/diagrams), one Markdown file per di
 
 ```text
 pre-match/
+├── Dockerfile                       # Multi-stage build: client build + Express runtime
+├── docker-compose.yml               # One service, published port and persistent SQLite volume
 ├── server/                          # Express API (Node.js, ESM)
 │   └── src/
 │       ├── server.js                # Entry point: HTTP server + Socket.io + live poller
@@ -132,6 +171,7 @@ pre-match/
 │       ├── services/
 │       │   ├── sync.service.js      # Cache-or-API sync into SQLite
 │       │   ├── livePoller.service.js# Polls only matches inside their live window
+│       │   ├── demoSeed.service.js  # Generates/purges the demo dataset
 │       │   └── analysisEngine/      # form, homeAway, schedule, fixture, standings
 │       ├── repositories/            # teams, matches, cache (the only SQL)
 │       ├── db/                      # Lazy connection + migration runner and 001_init.sql
@@ -154,48 +194,16 @@ pre-match/
 Each package has its own README with the API reference and the client details:
 [`server/README.md`](server/README.md) and [`client/README.md`](client/README.md).
 
-## Requirements
-
-- Node.js (LTS).
-- [pnpm](https://pnpm.io/) `11.3.0` (pinned via `packageManager` in `package.json`).
-- A free [football-data.org](https://www.football-data.org/) API key to sync leagues. The app runs
-  against data already stored in SQLite without one, but syncing and live polling need it.
-
-## Build, test and run
-
-```bash
-# 1. Install dependencies for both packages
-pnpm install
-
-# 2. Configure the environment (the scripts run with cwd set to server/, so dotenv reads server/.env)
-cp server/.env.example server/.env
-# edit server/.env and set FOOTBALL_DATA_API_KEY
-
-# 3. Run the API and the client together in development
-pnpm dev
-```
-
-`pnpm dev` starts both processes at once: the API on `http://localhost:3000` and the client on
-`http://localhost:5173`. It uses `concurrently -k`, so when one process exits the other is stopped
-too. Use `pnpm dev:server` or `pnpm dev:client` to run only one of them.
-
-| Command | Description |
-| --- | --- |
-| `pnpm dev` | Start the API and the client together. |
-| `pnpm dev:server` / `pnpm dev:client` | Start only the API (watch mode) or only the client. |
-| `pnpm test` | Run the server test suite. |
-| `pnpm --filter client test` | Run the client test suite. |
-| `pnpm lint` | Lint every package. |
-
 ## Testing
 
 Vitest runs both suites. Tests live in `__tests__/` folders next to each module, with shared fixtures
 under each package's `test/` folder.
 
-- **`server` — 121 tests across 18 files:** the repositories against a throwaway SQLite file, the
-  analysis engine's signals and fixture resolution, the sync service, the live poller under fake
-  timers, the Socket.io handlers, the rate limiter and the Express routes with Supertest.
-- **`client` — 137 tests across 28 files:** components, hooks, services, i18n and the end-to-end
+- **`server` — 131 tests across 20 files:** the repositories against a throwaway SQLite file, the
+  analysis engine's signals and fixture resolution, the sync service, the demo dataset generator and
+  purge, the live poller under fake timers, the Socket.io handlers, the rate limiter and the Express
+  routes with Supertest.
+- **`client` — 143 tests across 30 files:** components, hooks, services, i18n and the end-to-end
   flows (league → teams → the three analysis cards; follow a match and receive a live update without
   a refetch; language switching; and the favorite-team modal including the back-to-modal flow).
 
@@ -206,8 +214,8 @@ pnpm --filter client test    # client
 
 ## Status
 
-Phases 1-5 and 8 of the plan are complete and covered by tests. Docker packaging (phase 7) is still
-pending.
+All planned phases are complete: the application functionality (phases 1-5 and 8) is covered by the
+test suites, and phase 7 packages the whole app as a single Docker image.
 
 - **Explorer and analysis** work end to end: pick a league and two teams, get the real resolved
   fixture and the three independent signals as separate cards.
@@ -215,7 +223,10 @@ pending.
   live window and per-match rooms.
 - **i18n** switches between Spanish and English instantly and persists the choice.
 - **Favorite team** has its modal, its explorer banner and automatic live following.
-- **Pending:** Docker packaging (phase 7).
+- **Docker packaging** serves the built client from Express in one container, runs migrations on
+  startup and keeps the SQLite database in a named volume.
+- **Demo dataset** seeds automatically when no `FOOTBALL_DATA_API_KEY` is configured, and is removed
+  automatically the moment a real one is — the two never coexist.
 
 ## License
 

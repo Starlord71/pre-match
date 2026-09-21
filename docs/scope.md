@@ -16,8 +16,9 @@ the current boundary and the reason behind each exclusion.
 | Languages | Spanish and English, switchable at any time and persisted in `localStorage`. |
 | Favorite team | One optional favorite team per user, with a modal listing all its matches, an explorer banner for its live-or-next match and automatic live following (sound plus opt-in desktop notification). |
 | Persistence | SQLite: `teams` and `matches` as durable history, `api_cache` as an ephemeral TTL cache of raw API payloads. |
+| Packaging | A single Docker image: Express serves the built React client directly (no Nginx) and the SQLite database persists in a named volume. |
 
-Delivered so far: **phases 1-5 and 8** of the plan. Docker packaging (phase 7) is still pending.
+Delivered so far: **all planned phases (1-8)**, including the single-container Docker packaging of phase 7.
 
 ## Out of scope
 
@@ -29,7 +30,6 @@ Delivered so far: **phases 1-5 and 8** of the plan. Docker packaging (phase 7) i
 | Goalscorers and cards | The football-data.org endpoints the backend consumes do not provide them, so there is no data to derive a signal from. |
 | Head-to-head | Removed. It only ever had the locally synced matches to work with, and since two teams in the same league meet at most twice a season it fell below its own minimum in essentially every real case. An attempt to enrich it with football-data.org's cross-season `/matches/{id}/head2head` endpoint was dropped because that endpoint **missed real meetings and silently mixed in matches from other competitions** (cups, continental), so it was not reliable enough to show as fact — and not useful enough to keep as a signal that (almost) always said "not enough data". |
 | Authentication and multi-user support | By design a single-user, local tool: no accounts, sessions or per-user server state. Anything that must survive a reload (language, favorite team, followed matches) lives in the browser's `localStorage`. |
-| Docker packaging | Phase 7 of the plan, not built yet. Development runs both packages with `pnpm dev`. |
 
 ## Related documentation
 

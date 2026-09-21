@@ -151,5 +151,9 @@
     "loading": "Cargando…",
     "error": "Ocurrió un error.",
     "retry": "Reintentar"
+  },
+  "demo": {
+    "banner": "Estás viendo datos generados automáticamente. Configurá tu propia API key gratuita de",
+    "dismiss": "Cerrar aviso"
   }
 }

@@ -4,7 +4,7 @@
 
 API backend de la herramienta de análisis pre-partido.
 
-> **Estado:** fases 1-5 y 8 implementadas y cubiertas por tests: base de Express, SQLite con migraciones, cliente de football-data.org con rate limiting, el flujo de sync, el motor de análisis de tres señales, las actualizaciones de partidos en vivo vía Socket.io, los endpoints de equipos y partidos que consume el cliente en React, y la lista completa de partidos de un equipo para la feature de equipo favorito. El empaquetado Docker (fase 7) sigue _WIP_.
+> **Estado:** todas las fases implementadas y cubiertas por tests: base de Express, SQLite con migraciones, cliente de football-data.org con rate limiting, el flujo de sync, el motor de análisis de tres señales, las actualizaciones de partidos en vivo vía Socket.io, los endpoints de equipos y partidos que consume el cliente en React, la lista completa de partidos de un equipo para la feature de equipo favorito, el empaquetado Docker, y un dataset de demostración generado para cuando no hay API key configurada.
 
 ## Stack tecnológico
 
@@ -118,11 +118,16 @@ URL base: `http://localhost:3000` (configurable vía `PORT`).
 
 ### `GET /health`
 
+`demoData` es `true` cuando los equipos/partidos guardados son el dataset de demostración generado
+(ids negativos) en vez de datos sincronizados de football-data.org — ver [Dataset de
+demostración](#dataset-de-demostración) más abajo.
+
 ```json
 {
   "status": "ok",
   "uptime": 12.34,
-  "timestamp": "2026-01-01T00:00:00.000Z"
+  "timestamp": "2026-01-01T00:00:00.000Z",
+  "demoData": false
 }
 ```
 
@@ -285,6 +290,12 @@ soportada o un id de equipo no positivo devuelven `400`.
 Hubo una cuarta señal, historial directo (head-to-head): solo tenía los partidos de la temporada actual ya sincronizados para trabajar, y como dos equipos de la misma liga se cruzan como mucho dos veces por temporada, quedaba por debajo de su propio mínimo en prácticamente todos los casos reales. Se intentó enriquecerla con el endpoint cruzado `/matches/{id}/head2head` de football-data.org, pero ese endpoint resultó faltarle partidos reales y mezclar sin avisar encuentros de otras competiciones (copas, torneos continentales) — ni confiable para mostrarlo como un hecho, ni útil como señal que casi siempre decía "datos insuficientes". Se eliminó por completo.
 
 Las rutas desconocidas devuelven `404 { "error": "Not Found" }`. Los errores se gestionan con un middleware central que devuelve `{ "error": "<mensaje>" }`.
+
+## Dataset de demostración
+
+Cuando no hay `FOOTBALL_DATA_API_KEY` definida y la base está vacía, `server.js` siembra un dataset de demostración de la Premier League justo después de correr las migraciones, vía `services/demoSeed.service.js`: 20 nombres reales de clubes, un calendario round-robin anclado a la hora actual (jornadas pasadas finalizadas, la actual con un partido en vivo más partidos jugados y pendientes, y una jornada completa por delante). En cuanto se configura una key, cualquier fila demo restante se purga automáticamente antes de que corra cualquier otra cosa, así los datos demo y los reales nunca conviven.
+
+Las filas demo usan ids negativos (los ids reales de football-data.org son siempre positivos), suficiente para distinguirlas sin cambiar el schema — `WHERE id < 0` es exactamente `purgeDemoData()`. El campo `demoData` de `GET /health` refleja si hay algún equipo demo guardado actualmente, y el cliente lo usa para mostrar un aviso.
 
 ## Tiempo real (Socket.io)
 

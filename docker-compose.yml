@@ -1,0 +1,18 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: pre-match
+    env_file: .env
+    ports:
+      - "${PORT:-3000}:${PORT:-3000}"
+    volumes:
+      # DB_PATH in .env is relative (./data/prematch.sqlite) and resolves against
+      # the server working directory (/app/server), so the named volume keeps the
+      # SQLite file across restarts.
+      - prematch-data:/app/server/data
+    restart: unless-stopped
+
+volumes:
+  prematch-data:

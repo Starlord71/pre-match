@@ -17,8 +17,9 @@ exclusión.
 | Idiomas | Español e inglés, cambiables en cualquier momento y persistidos en `localStorage`. |
 | Equipo favorito | Un equipo favorito opcional por usuario, con un modal que lista todos sus partidos, un banner en el explorador para su partido en vivo o próximo, y auto-seguimiento en vivo (sonido más notificación de escritorio opcional). |
 | Persistencia | SQLite: `teams` y `matches` como historial duradero, `api_cache` como caché efímera con TTL de los payloads crudos de la API. |
+| Empaquetado | Una sola imagen Docker: Express sirve el cliente React compilado directamente (sin Nginx) y la base SQLite persiste en un volumen nombrado. |
 
-Entregado hasta ahora: **fases 1-5 y 8** del plan. El empaquetado Docker (fase 7) sigue pendiente.
+Entregado hasta ahora: **todas las fases del plan (1-8)**, incluido el empaquetado Docker en un solo contenedor de la fase 7.
 
 ## Fuera de alcance
 
@@ -30,7 +31,6 @@ Entregado hasta ahora: **fases 1-5 y 8** del plan. El empaquetado Docker (fase 7
 | Goleadores y tarjetas | Los endpoints de football-data.org que consume el backend no los proveen, así que no hay datos de los que derivar una señal. |
 | Historial directo (head-to-head) | Eliminado. Solo tenía los partidos sincronizados localmente para trabajar, y como dos equipos de la misma liga se cruzan como mucho dos veces por temporada, quedaba por debajo de su propio mínimo en prácticamente todos los casos reales. Se intentó enriquecerlo con el endpoint cruzado entre temporadas `/matches/{id}/head2head` de football-data.org, pero se descartó porque ese endpoint **le faltaban enfrentamientos reales y mezclaba sin avisar partidos de otras competiciones** (copas, torneos continentales), así que no era lo bastante fiable para mostrarlo como un hecho — ni lo bastante útil como para mantenerlo como una señal que (casi) siempre decía "datos insuficientes". |
 | Autenticación y multiusuario | Por diseño es una herramienta local de un solo usuario: sin cuentas, sesiones ni estado de servidor por usuario. Todo lo que debe sobrevivir a una recarga (idioma, equipo favorito, partidos seguidos) vive en `localStorage` del navegador. |
-| Empaquetado Docker | Fase 7 del plan, todavía no construida. El desarrollo corre ambos paquetes con `pnpm dev`. |
 
 ## Documentación relacionada
 
