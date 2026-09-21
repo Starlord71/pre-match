@@ -113,6 +113,10 @@ export function createFootballDataClient({
 /** Shared client instance used by services. */
 export const footballDataClient = createFootballDataClient();
 
+/**
+ * Bound endpoint methods of the shared client, so a caller can import a single
+ * function instead of the whole client object.
+ */
 export const { getCompetitionMatches, getCompetitionTeams, getHeadToHead } = footballDataClient;
 
 export default footballDataClient;

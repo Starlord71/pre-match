@@ -4,7 +4,7 @@
 
 Backend API for the pre-match analysis tool.
 
-> **Status:** phases 1-5 implemented and covered by tests: Express base, SQLite with migrations, football-data.org client with rate limiting, the sync flow, the three-signal analysis engine, real-time match updates over Socket.io and the teams and matches endpoints consumed by the React client. Docker packaging (phase 7) is still _WIP_.
+> **Status:** phases 1-5 and 8 implemented and covered by tests: Express base, SQLite with migrations, football-data.org client with rate limiting, the sync flow, the three-signal analysis engine, real-time match updates over Socket.io, the teams and matches endpoints consumed by the React client, and a team's full fixture list for the favorite-team feature. Docker packaging (phase 7) is still _WIP_.
 
 ## Tech stack
 
@@ -112,6 +112,7 @@ Base URL: `http://localhost:3000` (configurable via `PORT`).
 | `GET`  | `/health`                              | Service health status              |
 | `GET`  | `/api/teams?league=`                   | Teams that played in a league      |
 | `GET`  | `/api/matches?league=`                 | League current + next matchday with their matches |
+| `GET`  | `/api/matches/team/:teamId?league=`    | A team's full stored fixture list, played and upcoming |
 | `POST` | `/api/sync/:league`                    | Sync one league from football-data |
 | `GET`  | `/api/analysis?home=&away=`            | Three signals for a pairing, plus the resolved real fixture |
 
@@ -177,6 +178,39 @@ Base URL: `http://localhost:3000` (configurable via `PORT`).
       ]
     },
     { "matchday": 4, "matches": [] }
+  ]
+}
+```
+
+### `GET /api/matches/team/:teamId?league=`
+
+`:teamId` is a positive integer, `league` is one of `PL`, `PD`, `BL1`, `SA`, `FL1`. Returns every
+stored match of that team in the league, played and upcoming, ordered by kickoff, with both teams
+embedded — the data behind the favorite-team modal and its explorer banner. Matching is on either
+side (`home_team_id` or `away_team_id`), so a team's own home and away fixtures both come back in
+one request. An unsupported league or a non-positive team id returns `400`.
+
+```json
+{
+  "league": "PL",
+  "teamId": 57,
+  "matches": [
+    {
+      "id": 500,
+      "league": "PL",
+      "utcDate": "2026-09-20T19:30:00Z",
+      "status": "FINISHED",
+      "matchday": 3,
+      "winner": "HOME_TEAM",
+      "duration": "REGULAR",
+      "fullTimeHome": 2,
+      "fullTimeAway": 1,
+      "halfTimeHome": 1,
+      "halfTimeAway": 0,
+      "updatedAt": "2026-09-20T21:30:00.000Z",
+      "homeTeam": { "id": 57, "name": "Arsenal FC", "shortName": "Arsenal", "tla": "ARS", "crest": "https://crests.football-data.org/57.png" },
+      "awayTeam": { "id": 61, "name": "Chelsea FC", "shortName": "Chelsea", "tla": "CHE", "crest": "https://crests.football-data.org/61.png" }
+    }
   ]
 }
 ```

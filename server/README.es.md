@@ -4,7 +4,7 @@
 
 API backend de la herramienta de análisis pre-partido.
 
-> **Estado:** fases 1-5 implementadas y cubiertas por tests: base de Express, SQLite con migraciones, cliente de football-data.org con rate limiting, el flujo de sync, el motor de análisis de tres señales, las actualizaciones de partidos en vivo vía Socket.io y los endpoints de equipos y partidos que consume el cliente en React. El empaquetado Docker (fase 7) sigue _WIP_.
+> **Estado:** fases 1-5 y 8 implementadas y cubiertas por tests: base de Express, SQLite con migraciones, cliente de football-data.org con rate limiting, el flujo de sync, el motor de análisis de tres señales, las actualizaciones de partidos en vivo vía Socket.io, los endpoints de equipos y partidos que consume el cliente en React, y la lista completa de partidos de un equipo para la feature de equipo favorito. El empaquetado Docker (fase 7) sigue _WIP_.
 
 ## Stack tecnológico
 
@@ -112,6 +112,7 @@ URL base: `http://localhost:3000` (configurable vía `PORT`).
 | `GET`  | `/health`                         | Estado del servicio                  |
 | `GET`  | `/api/teams?league=`              | Equipos que jugaron en una liga      |
 | `GET`  | `/api/matches?league=`            | Jornada actual + próxima de la liga con sus partidos |
+| `GET`  | `/api/matches/team/:teamId?league=` | Lista completa de partidos guardados de un equipo, jugados y pendientes |
 | `POST` | `/api/sync/:league`               | Sincroniza una liga desde football-data |
 | `GET`  | `/api/analysis?home=&away=`       | Tres señales para un enfrentamiento, más el partido real resuelto |
 
@@ -177,6 +178,40 @@ URL base: `http://localhost:3000` (configurable vía `PORT`).
       ]
     },
     { "matchday": 4, "matches": [] }
+  ]
+}
+```
+
+### `GET /api/matches/team/:teamId?league=`
+
+`:teamId` es un entero positivo, `league` es una de `PL`, `PD`, `BL1`, `SA`, `FL1`. Devuelve todos
+los partidos guardados de ese equipo en la liga, jugados y pendientes, ordenados por hora de inicio,
+con ambos equipos embebidos — los datos detrás del modal de equipo favorito y su banner en el
+explorador. El match es por cualquiera de los dos lados (`home_team_id` o `away_team_id`), así que
+tanto los partidos de local como de visitante del equipo vuelven en una sola petición. Una liga no
+soportada o un id de equipo no positivo devuelven `400`.
+
+```json
+{
+  "league": "PL",
+  "teamId": 57,
+  "matches": [
+    {
+      "id": 500,
+      "league": "PL",
+      "utcDate": "2026-09-20T19:30:00Z",
+      "status": "FINISHED",
+      "matchday": 3,
+      "winner": "HOME_TEAM",
+      "duration": "REGULAR",
+      "fullTimeHome": 2,
+      "fullTimeAway": 1,
+      "halfTimeHome": 1,
+      "halfTimeAway": 0,
+      "updatedAt": "2026-09-20T21:30:00.000Z",
+      "homeTeam": { "id": 57, "name": "Arsenal FC", "shortName": "Arsenal", "tla": "ARS", "crest": "https://crests.football-data.org/57.png" },
+      "awayTeam": { "id": 61, "name": "Chelsea FC", "shortName": "Chelsea", "tla": "CHE", "crest": "https://crests.football-data.org/61.png" }
+    }
   ]
 }
 ```

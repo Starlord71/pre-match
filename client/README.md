@@ -4,7 +4,7 @@
 
 Web client for the pre-match analysis tool.
 
-> **Status:** phases 1-5 implemented. The UI is responsive (mobile-first), bilingual (ES/EN with instant switching), consumes the API through pure service wrappers and hooks, renders the three analysis signals as separate cards and lists a league's current matchday, with a toggle to the next one, following several matches live over Socket.io. Docker packaging (phase 7) is pending.
+> **Status:** phases 1-5 and 8 implemented. The UI is responsive (mobile-first), bilingual (ES/EN with instant switching), consumes the API through pure service wrappers and hooks, renders the three analysis signals as separate cards and lists a league's current matchday, with a toggle to the next one, following several matches live over Socket.io. A favorite team can be saved from a modal that never leaves the explorer, with an explorer banner and automatic live following. Docker packaging (phase 7) is pending.
 
 ## Tech stack
 
@@ -47,8 +47,10 @@ client/
     ├── main.jsx          # Entry point: initializes i18n, mounts <App />
     ├── App.jsx           # Root component + page navigation
     ├── services/         # Pure fetch / socket wrappers (no React)
-    ├── hooks/            # useTeams, useMatches, useAnalysis, useLiveMatches, useLanguage
-    ├── components/       # Presentational components and signal cards
+    ├── hooks/            # useTeams, useMatches, useTeamMatches, useAnalysis,
+    │                     # useLiveMatches, useFollowedMatches, useFavoriteTeam
+    ├── components/       # Presentational components, signal cards, the favorite
+    │                     # team modal/banner/watcher
     ├── pages/            # Explorer and analysis pages
     ├── utils/            # Pure helpers (matchday grouping and date formatting)
     ├── i18n/             # i18next config + es/en locales
@@ -70,11 +72,25 @@ The explorer form picks a league and two teams. The league uses a native select;
 
 The explorer's live panel shows the selected league's **current matchday** by default (the latest one that already started, so its played, live and remaining fixtures are all shown), headed by the matchday number and its date range. A **View next matchday** button swaps the list to the next matchday and back. Inside a matchday, fixtures are grouped by calendar day and ordered by kickoff, and each card highlights the score. The league comes from the explorer selector, so the panel has no selector of its own; changing league remounts it and clears the followed matches. Any number of matches can be followed at once, and their status and score update over Socket.io without a reload.
 
+## Favorite team
+
+`useFavoriteTeam` exposes a `FavoriteTeamProvider` context (team + the modal's open/closed state)
+shared by the header button, `FavoriteTeamModal`, `FavoriteNextMatchBanner` and the analysis page's
+back link — no page or route change of its own. Saving a team keeps it in `localStorage`; opening
+the modal without one saved shows the same league/team selectors as the explorer, and "Change team"
+reopens them pre-filled without losing the current favorite until a new one is actually saved. Two
+things stay in sync with it in the background: `FavoriteNextMatchBanner` shows the team's live-or-next
+match on the explorer, and `FavoriteLiveWatcher` (mounted once in `App.jsx`) auto-subscribes to that
+same match over Socket.io, so its updates play a sound (and an opt-in desktop notification) without
+following it by hand. Opening a match from inside the modal closes it and carries `state.reopenFavorite`,
+so clicking "Back" from the analysis page reopens the modal instead of landing on a bare explorer.
+
 ## Configuration
 
 - **Dev server:** Vite defaults (`http://localhost:5173`).
 - **API base URL:** `VITE_API_URL` (default `http://localhost:3000`), read in `src/services/http.js`. The server enables CORS, so no dev proxy is needed.
 - **Language:** both locale bundles are imported statically and i18next initializes synchronously; the choice is persisted in `localStorage` under `preferredLanguage`.
+- **Favorite team:** persisted under `favoriteTeam`; a one-time header hint suggesting to pick one is dismissed for good (`favoriteHintDismissed`) once opened or closed. Desktop notifications for live updates are opt-in and persisted under `notificationsEnabled`, shared by the live panel and the favorite team's auto-follow.
 
 ## Related documentation
 
