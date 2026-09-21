@@ -230,4 +230,4 @@ test suites, and phase 7 packages the whole app as a single Docker image.
 
 ## License
 
-TBD — _WIP_.
+Released under the [MIT License](LICENSE).
