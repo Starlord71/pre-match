@@ -7,6 +7,40 @@
  * @module services/notifications
  */
 
+/** localStorage key holding the desktop-notifications opt-in. */
+const NOTIFICATIONS_STORAGE_KEY = 'notificationsEnabled'
+
+/**
+ * Reads the persisted notifications opt-in, defaulting to off.
+ *
+ * A single global flag: every live-update source (the manually followed
+ * matches in `LiveMatchesPanel`, the favorite team's auto-watched match in
+ * `FavoriteLiveWatcher`) reads it fresh at the moment of each update instead
+ * of caching it in component state, so a toggle in one place is immediately
+ * respected everywhere else.
+ * @returns {boolean} Whether notifications are enabled.
+ */
+export function isNotificationsEnabled() {
+  try {
+    return window.localStorage.getItem(NOTIFICATIONS_STORAGE_KEY) === 'true'
+  } catch {
+    return false
+  }
+}
+
+/**
+ * Persists the notifications opt-in, ignoring storage failures.
+ * @param {boolean} value Enabled state.
+ * @returns {void}
+ */
+export function setNotificationsEnabled(value) {
+  try {
+    window.localStorage.setItem(NOTIFICATIONS_STORAGE_KEY, String(value))
+  } catch {
+    // Storage is unavailable; the in-memory state still works.
+  }
+}
+
 /**
  * Tells whether the Notification API is available.
  * @returns {boolean} True when notifications can be used.
@@ -94,4 +128,11 @@ export function notify(match) {
   }
 }
 
-export default { isSupported, permissionState, requestPermission, notify }
+export default {
+  isSupported,
+  permissionState,
+  requestPermission,
+  notify,
+  isNotificationsEnabled,
+  setNotificationsEnabled,
+}

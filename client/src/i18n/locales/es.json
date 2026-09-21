@@ -132,7 +132,9 @@
     "headerLabel": "Favorito",
     "close": "Cerrar",
     "hint": "Elegí tu equipo favorito para seguir todos sus partidos.",
-    "hintDismiss": "Cerrar aviso"
+    "hintDismiss": "Cerrar aviso",
+    "nextMatch": "Próximo partido de {{team}}",
+    "liveNow": "¡{{team}} está jugando ahora!"
   },
   "status": {
     "SCHEDULED": "Programado",

@@ -132,7 +132,9 @@
     "headerLabel": "Favorite",
     "close": "Close",
     "hint": "Pick your favorite team to follow all its matches.",
-    "hintDismiss": "Dismiss hint"
+    "hintDismiss": "Dismiss hint",
+    "nextMatch": "Next match for {{team}}",
+    "liveNow": "{{team}} is playing now!"
   },
   "status": {
     "SCHEDULED": "Scheduled",

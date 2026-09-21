@@ -4,17 +4,21 @@ import Header from './components/Header.jsx'
 import ExplorerPage from './pages/ExplorerPage.jsx'
 import AnalysisPage from './pages/AnalysisPage.jsx'
 import FavoriteTeamModal from './components/FavoriteTeamModal.jsx'
+import FavoriteLiveWatcher from './components/FavoriteLiveWatcher.jsx'
 import { FavoriteTeamProvider, useFavoriteTeam } from './hooks/useFavoriteTeam.js'
 import './App.css'
 
 /**
- * App shell: header, active route, footer and the favorite-team modal.
+ * App shell: header, active route, footer, the favorite-team modal and its
+ * live watcher.
  *
  * Routing lives in the URL so a refresh keeps the current view. The favorite
  * team is an optional extra layered on top of that, not a route: it opens as
- * a modal from the header and never changes what `/` shows. A separate
- * component from `App` only so it can read `useFavoriteTeam()` from inside
- * the provider that wraps it.
+ * a modal from the header and never changes what `/` shows.
+ * `FavoriteLiveWatcher` renders nothing but is mounted here (not inside a
+ * specific page) so the favorite team's match is auto-followed regardless of
+ * which route is active. A separate component from `App` only so it can read
+ * `useFavoriteTeam()` from inside the provider that wraps it.
  * @returns {JSX.Element} The app shell.
  */
 function AppShell() {
@@ -36,6 +40,7 @@ function AppShell() {
       <footer className="app-footer">{t('app.footer')}</footer>
 
       {modalOpen ? <FavoriteTeamModal onClose={closeModal} /> : null}
+      <FavoriteLiveWatcher />
     </div>
   )
 }

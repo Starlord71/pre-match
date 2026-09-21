@@ -24,7 +24,9 @@ import './FavoriteTeamModal.css'
  * until a new one is actually saved.
  * Clicking a match closes the modal and opens its analysis with
  * `state.reopenFavorite`, so the analysis page's back link can reopen this
- * modal instead of landing on a bare explorer (see `App.jsx`).
+ * modal instead of landing on a bare explorer (see `App.jsx`). Tab/Shift+Tab
+ * is trapped inside the panel so keyboard focus never leaks to the explorer
+ * underneath.
  * @param {object} props Component props.
  * @param {() => void} props.onClose Closes the modal.
  * @returns {JSX.Element} The favorite team modal.
@@ -44,7 +46,30 @@ function FavoriteTeamModal({ onClose }) {
 
   useEffect(() => {
     function handleKeyDown(event) {
-      if (event.key === 'Escape') onClose()
+      if (event.key === 'Escape') {
+        onClose()
+        return
+      }
+      if (event.key !== 'Tab') return
+
+      const panel = panelRef.current
+      if (!panel) return
+
+      const focusable = Array.from(
+        panel.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'),
+      ).filter((element) => !element.disabled)
+      if (focusable.length === 0) return
+
+      const first = focusable[0]
+      const last = focusable[focusable.length - 1]
+
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault()
+        last.focus()
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault()
+        first.focus()
+      }
     }
 
     document.addEventListener('keydown', handleKeyDown)

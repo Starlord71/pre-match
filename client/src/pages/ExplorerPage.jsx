@@ -7,6 +7,7 @@ import { SUPPORTED_LEAGUES } from '../constants/leagues.js'
 import SelectField from '../components/SelectField.jsx'
 import TeamSelect from '../components/TeamSelect.jsx'
 import LiveMatchesPanel from '../components/LiveMatchesPanel.jsx'
+import FavoriteNextMatchBanner from '../components/FavoriteNextMatchBanner.jsx'
 import './ExplorerPage.css'
 
 /**
@@ -70,6 +71,8 @@ function ExplorerPage() {
         <h1 className="page-title">{t('explorer.title')}</h1>
         <p className="page-subtitle">{t('explorer.subtitle')}</p>
       </header>
+
+      <FavoriteNextMatchBanner />
 
       <form className="explorer__form" onSubmit={handleSubmit}>
         <SelectField

@@ -8,37 +8,14 @@ import { LIVE_STATUSES } from '../constants/matchStatus.js'
 import { groupMatchesByDay, formatDayRange, formatDayLabel } from '../utils/matchdays.js'
 import { formatDateTime, formatTime } from '../utils/formatDate.js'
 import { playNotificationSound } from '../utils/notificationSound.js'
-import { notify, requestPermission } from '../services/notifications.service.js'
+import {
+  notify,
+  requestPermission,
+  isNotificationsEnabled as readNotificationsEnabled,
+  setNotificationsEnabled as writeNotificationsEnabled,
+} from '../services/notifications.service.js'
 import LiveIndicator from './LiveIndicator.jsx'
 import './LiveMatchesPanel.css'
-
-/** localStorage key holding the desktop-notifications opt-in. */
-const NOTIFICATIONS_STORAGE_KEY = 'notificationsEnabled'
-
-/**
- * Reads the persisted notifications opt-in, defaulting to off.
- * @returns {boolean} Whether notifications are enabled.
- */
-function readNotificationsEnabled() {
-  try {
-    return window.localStorage.getItem(NOTIFICATIONS_STORAGE_KEY) === 'true'
-  } catch {
-    return false
-  }
-}
-
-/**
- * Persists the notifications opt-in, ignoring storage failures.
- * @param {boolean} value Enabled state.
- * @returns {void}
- */
-function writeNotificationsEnabled(value) {
-  try {
-    window.localStorage.setItem(NOTIFICATIONS_STORAGE_KEY, String(value))
-  } catch {
-    // Storage is unavailable; the in-memory state still works.
-  }
-}
 
 /**
  * Tells whether a kickoff is still in the future.

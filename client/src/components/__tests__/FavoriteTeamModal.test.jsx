@@ -114,6 +114,28 @@ describe('FavoriteTeamModal', () => {
     expect(onClose).toHaveBeenCalledTimes(1)
   })
 
+  it('traps Tab focus inside the panel', async () => {
+    window.localStorage.setItem(
+      'favoriteTeam',
+      JSON.stringify({ league: 'PL', teamId: 1, teamName: 'Home United' }),
+    )
+    getTeamMatches.mockResolvedValue({ league: 'PL', teamId: 1, matches: [] })
+    renderModal()
+
+    await screen.findByText('No hay partidos cargados para este equipo.')
+
+    const closeButton = screen.getByRole('button', { name: 'Cerrar' })
+    const changeButton = screen.getByRole('button', { name: 'Cambiar equipo' })
+
+    closeButton.focus()
+    fireEvent.keyDown(document, { key: 'Tab', shiftKey: true })
+    expect(document.activeElement).toBe(changeButton)
+
+    changeButton.focus()
+    fireEvent.keyDown(document, { key: 'Tab' })
+    expect(document.activeElement).toBe(closeButton)
+  })
+
   it('saves the selected team and lists its matches', async () => {
     const user = userEvent.setup()
     renderModal()

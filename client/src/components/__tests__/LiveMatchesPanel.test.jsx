@@ -15,6 +15,8 @@ vi.mock('../../utils/notificationSound.js', () => ({ playNotificationSound: vi.f
 vi.mock('../../services/notifications.service.js', () => ({
   notify: vi.fn(),
   requestPermission: vi.fn(async () => 'granted'),
+  isNotificationsEnabled: vi.fn(() => window.localStorage.getItem('notificationsEnabled') === 'true'),
+  setNotificationsEnabled: vi.fn((value) => window.localStorage.setItem('notificationsEnabled', String(value))),
 }))
 
 const hoursFromNow = (hours) => new Date(Date.now() + hours * 60 * 60 * 1000).toISOString()
