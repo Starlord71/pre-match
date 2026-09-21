@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getMatches } from '../controllers/matches.controller.js';
+import { getMatches, getTeamMatches } from '../controllers/matches.controller.js';
 
 /**
  * Matches routes.
@@ -8,5 +8,6 @@ import { getMatches } from '../controllers/matches.controller.js';
 const router = Router();
 
 router.get('/', getMatches);
+router.get('/team/:teamId', getTeamMatches);
 
 export default router;

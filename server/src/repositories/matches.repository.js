@@ -191,6 +191,65 @@ export function findByLeagueWithTeams(league, { from, to, matchdays } = {}) {
 }
 
 /**
+ * Lists a team's matches with their two teams embedded, restricted to a league.
+ *
+ * Same shape as `findByLeagueWithTeams` but keyed on a single team matched on
+ * either side, so a favorite team's full fixture list (played and upcoming)
+ * comes back in one request ordered by kickoff date.
+ * @param {number} teamId Team id.
+ * @param {string} league League code.
+ * @returns {object[]} Plain match objects ordered by kickoff date.
+ */
+export function findByTeamWithTeams(teamId, league) {
+  return getDb()
+    .prepare(
+      `SELECT
+         m.id, m.league, m.utc_date, m.status, m.matchday,
+         m.winner, m.duration,
+         m.full_time_home, m.full_time_away, m.half_time_home, m.half_time_away,
+         m.updated_at,
+         ht.id AS home_team_id, ht.name AS home_team_name,
+         ht.short_name AS home_team_short_name, ht.tla AS home_team_tla, ht.crest AS home_team_crest,
+         at.id AS away_team_id, at.name AS away_team_name,
+         at.short_name AS away_team_short_name, at.tla AS away_team_tla, at.crest AS away_team_crest
+       FROM matches m
+       JOIN teams ht ON ht.id = m.home_team_id
+       JOIN teams at ON at.id = m.away_team_id
+       WHERE (m.home_team_id = ? OR m.away_team_id = ?) AND m.league = ?
+       ORDER BY m.utc_date ASC`,
+    )
+    .all(teamId, teamId, league)
+    .map((row) => ({
+      id: row.id,
+      league: row.league,
+      utcDate: row.utc_date,
+      status: row.status,
+      matchday: row.matchday,
+      winner: row.winner,
+      duration: row.duration,
+      fullTimeHome: row.full_time_home,
+      fullTimeAway: row.full_time_away,
+      halfTimeHome: row.half_time_home,
+      halfTimeAway: row.half_time_away,
+      updatedAt: row.updated_at,
+      homeTeam: {
+        id: row.home_team_id,
+        name: row.home_team_name,
+        shortName: row.home_team_short_name,
+        tla: row.home_team_tla,
+        crest: row.home_team_crest,
+      },
+      awayTeam: {
+        id: row.away_team_id,
+        name: row.away_team_name,
+        shortName: row.away_team_short_name,
+        tla: row.away_team_tla,
+        crest: row.away_team_crest,
+      },
+    }));
+}
+
+/**
  * Finds the matchday currently in focus and the one after it.
  *
  * The current matchday is the one of the latest match that already kicked off

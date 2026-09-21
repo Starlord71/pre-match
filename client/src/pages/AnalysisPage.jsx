@@ -1,7 +1,8 @@
-import { Link, useParams } from 'react-router-dom'
+import { Link, useLocation, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useTeams } from '../hooks/useTeams.js'
 import { useAnalysis } from '../hooks/useAnalysis.js'
+import { useFavoriteTeam } from '../hooks/useFavoriteTeam.js'
 import { formatDateTime } from '../utils/formatDate.js'
 import FormCard from '../components/FormCard.jsx'
 import HomeAwayCard from '../components/HomeAwayCard.jsx'
@@ -15,10 +16,19 @@ import './AnalysisPage.css'
  * team names are looked up through `useTeams`, so a refresh or a shared link
  * keeps the current match. The real fixture (date, matchday, result if already
  * played) is resolved by the backend and comes back as `analysis.fixture`.
+ *
+ * The back link normally just returns to the explorer. When this match was
+ * opened from the favorite-team modal (flagged by `location.state.reopenFavorite`,
+ * set in `FavoriteTeamModal.jsx`), clicking back also reopens that modal
+ * (via the shared `useFavoriteTeam` context) instead of landing on a bare
+ * explorer — done from the click itself, not a reactive effect, since the
+ * modal is plain UI state.
  * @returns {JSX.Element} The analysis page.
  */
 function AnalysisPage() {
   const { t, i18n } = useTranslation()
+  const location = useLocation()
+  const { openModal } = useFavoriteTeam()
   const { league, homeId, awayId } = useParams()
   const { teams, loading: teamsLoading, error: teamsError } = useTeams(league)
   const home = teams.find((team) => String(team.id) === homeId)
@@ -29,7 +39,13 @@ function AnalysisPage() {
 
   return (
     <section className="analysis-page">
-      <Link to="/" className="button button--ghost analysis-page__back">
+      <Link
+        to="/"
+        className="button button--ghost analysis-page__back"
+        onClick={() => {
+          if (location.state?.reopenFavorite) openModal()
+        }}
+      >
         ← {t('analysis.back')}
       </Link>
 

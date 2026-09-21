@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import AnalysisPage from '../AnalysisPage.jsx'
+import { FavoriteTeamProvider } from '../../hooks/useFavoriteTeam.js'
 import { getAnalysis } from '../../services/analysis.service.js'
 import { getTeams } from '../../services/teams.service.js'
 import {
@@ -17,11 +18,13 @@ vi.mock('../../services/teams.service.js', () => ({ getTeams: vi.fn() }))
 
 function renderPage(homeId = homeTeam.id, awayId = awayTeam.id) {
   return render(
-    <MemoryRouter initialEntries={[`/match/PL/${homeId}/${awayId}`]}>
-      <Routes>
-        <Route path="/match/:league/:homeId/:awayId" element={<AnalysisPage />} />
-      </Routes>
-    </MemoryRouter>,
+    <FavoriteTeamProvider>
+      <MemoryRouter initialEntries={[`/match/PL/${homeId}/${awayId}`]}>
+        <Routes>
+          <Route path="/match/:league/:homeId/:awayId" element={<AnalysisPage />} />
+        </Routes>
+      </MemoryRouter>
+    </FavoriteTeamProvider>,
   )
 }
 

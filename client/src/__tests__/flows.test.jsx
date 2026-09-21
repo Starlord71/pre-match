@@ -6,12 +6,12 @@ import App from '../App.jsx'
 import i18n from '../i18n/index.js'
 import { analysisFixture } from '../test/fixtures.js'
 import { getTeams } from '../services/teams.service.js'
-import { getMatches } from '../services/matches.service.js'
+import { getMatches, getTeamMatches } from '../services/matches.service.js'
 import { getAnalysis } from '../services/analysis.service.js'
 import { subscribeToMatches } from '../services/sockets.service.js'
 
 vi.mock('../services/teams.service.js', () => ({ getTeams: vi.fn() }))
-vi.mock('../services/matches.service.js', () => ({ getMatches: vi.fn() }))
+vi.mock('../services/matches.service.js', () => ({ getMatches: vi.fn(), getTeamMatches: vi.fn() }))
 vi.mock('../services/analysis.service.js', () => ({ getAnalysis: vi.fn() }))
 vi.mock('../services/sockets.service.js', () => ({ subscribeToMatches: vi.fn(() => vi.fn()) }))
 
@@ -68,6 +68,7 @@ describe('integration flows', () => {
     window.localStorage.clear()
     getTeams.mockResolvedValue(teams)
     getMatches.mockResolvedValue(matchdaysPayload)
+    getTeamMatches.mockResolvedValue({ league: 'PL', teamId: 1, matches: [] })
     getAnalysis.mockResolvedValue(analysisFixture)
     subscribeToMatches.mockReturnValue(vi.fn())
   })
@@ -151,5 +152,90 @@ describe('integration flows', () => {
     expect(screen.getByText('Forma reciente')).toBe(cardNode)
     expect(screen.getByText('Congestión de calendario')).toBeInTheDocument()
     expect(window.localStorage.getItem('preferredLanguage')).toBe('es')
+  })
+
+  it('renders the explorer directly, with no favorite team saved yet', async () => {
+    render(
+      <MemoryRouter>
+        <App />
+      </MemoryRouter>,
+    )
+
+    expect(await screen.findByLabelText('Liga')).toBeInTheDocument()
+    expect(screen.queryByText('Todavía no elegiste un equipo favorito.')).not.toBeInTheDocument()
+  })
+
+  it('opens the favorite team as a modal over the explorer, and reopens it after viewing a match', async () => {
+    getTeamMatches.mockResolvedValue({
+      league: 'PL',
+      teamId: 1,
+      matches: [
+        {
+          id: 900,
+          status: 'FINISHED',
+          utcDate: '2026-04-01T15:00:00Z',
+          homeTeam: { id: 1, name: 'Home United' },
+          awayTeam: { id: 2, name: 'Away City' },
+          fullTimeHome: 2,
+          fullTimeAway: 1,
+        },
+      ],
+    })
+    const user = userEvent.setup()
+    render(
+      <MemoryRouter>
+        <App />
+      </MemoryRouter>,
+    )
+
+    // The explorer is the default view; the modal only appears once opened.
+    expect(await screen.findByLabelText('Liga')).toBeInTheDocument()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Equipo favorito' }))
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+
+    await user.selectOptions(within(screen.getByRole('dialog')).getByLabelText('Liga'), 'PL')
+    const teamInput = await within(screen.getByRole('dialog')).findByLabelText('Equipo')
+    await waitFor(() => expect(teamInput).not.toBeDisabled())
+    await user.click(teamInput)
+    await user.click(await screen.findByRole('option', { name: 'Home United' }))
+    await user.click(screen.getByRole('button', { name: 'Guardar como favorito' }))
+
+    expect(await screen.findByText('Partidos de Home United')).toBeInTheDocument()
+
+    // The explorer underneath is untouched: its own league/team selects are
+    // still there, the modal is just layered on top of them.
+    expect(screen.getByLabelText('Equipo local')).toBeInTheDocument()
+
+    await user.click(screen.getByText('2 – 1').closest('.favorite-match').querySelector('.favorite-match__main'))
+
+    // Closed the modal and opened the match's analysis.
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(await screen.findByText('Forma reciente')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('link', { name: /Volver/ }))
+
+    // Back on the explorer, with the favorite modal reopened automatically.
+    expect(await screen.findByRole('dialog')).toBeInTheDocument()
+    expect(screen.getByText('Partidos de Home United')).toBeInTheDocument()
+  })
+
+  it('going back from a match opened through the normal explorer flow does not open the favorite modal', async () => {
+    const user = userEvent.setup()
+    render(
+      <MemoryRouter>
+        <App />
+      </MemoryRouter>,
+    )
+
+    await selectFixture(user)
+    await user.click(screen.getByRole('button', { name: 'Ver análisis' }))
+    await waitFor(() => expect(screen.getByText('Forma reciente')).toBeInTheDocument())
+
+    await user.click(screen.getByRole('link', { name: /Volver/ }))
+
+    expect(await screen.findByLabelText('Liga')).toBeInTheDocument()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 })

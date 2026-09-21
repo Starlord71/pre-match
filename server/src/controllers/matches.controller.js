@@ -50,3 +50,36 @@ export function getMatches(req, res, next) {
     next(err);
   }
 }
+
+/**
+ * Lists every stored match of a team in a league, played and upcoming.
+ *
+ * Matches the team on either side so a favorite team's full fixture list comes
+ * back in one request, with both teams embedded for rendering.
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @param {import('express').NextFunction} next
+ * @returns {void}
+ */
+export function getTeamMatches(req, res, next) {
+  const league = LeagueCode.safeParse(req.query.league);
+
+  if (!league.success) {
+    res.status(400).json({ error: `Unsupported league: ${req.query.league}` });
+    return;
+  }
+
+  const teamId = Number(req.params.teamId);
+
+  if (!Number.isInteger(teamId) || teamId <= 0) {
+    res.status(400).json({ error: `Invalid team id: ${req.params.teamId}` });
+    return;
+  }
+
+  try {
+    const matches = matchesRepository.findByTeamWithTeams(teamId, league.data);
+    res.status(200).json({ league: league.data, teamId, matches });
+  } catch (err) {
+    next(err);
+  }
+}

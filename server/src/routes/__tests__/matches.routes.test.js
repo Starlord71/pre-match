@@ -106,4 +106,42 @@ describe('GET /api/matches', () => {
     expect(response.status).toBe(400);
     expect(response.body).toHaveProperty('error');
   });
+
+  it('returns a team matches in a league, on either side and ordered by kickoff', async () => {
+    const response = await supertest(app).get('/api/matches/team/1?league=PL');
+
+    expect(response.status).toBe(200);
+    expect(response.body.league).toBe('PL');
+    expect(response.body.teamId).toBe(1);
+    expect(response.body.matches.map((entry) => entry.id)).toEqual([600, 601, 602]);
+    expect(response.body.matches[0]).toMatchObject({
+      id: 600,
+      homeTeam: { id: 1, name: 'Arsenal FC' },
+      awayTeam: { id: 2, name: 'Chelsea FC' },
+    });
+  });
+
+  it('matches the team on the away side too and excludes other leagues', async () => {
+    const response = await supertest(app).get('/api/matches/team/1?league=PD');
+
+    expect(response.status).toBe(200);
+    expect(response.body.matches.map((entry) => entry.id)).toEqual([603]);
+    expect(response.body.matches[0]).toMatchObject({
+      awayTeam: { id: 1, name: 'Arsenal FC' },
+    });
+  });
+
+  it('returns 400 for the team matches route when the league is invalid', async () => {
+    const response = await supertest(app).get('/api/matches/team/1?league=XX');
+
+    expect(response.status).toBe(400);
+    expect(response.body).toHaveProperty('error');
+  });
+
+  it('returns 400 for the team matches route when the team id is not a positive integer', async () => {
+    const response = await supertest(app).get('/api/matches/team/abc?league=PL');
+
+    expect(response.status).toBe(400);
+    expect(response.body).toHaveProperty('error');
+  });
 });

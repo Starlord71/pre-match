@@ -203,6 +203,31 @@ describe('matches.repository', () => {
     ).toEqual([500, 503]);
   });
 
+  it('lists a team matches with their teams embedded, both home and away, restricted to a league', () => {
+    const matches = matchesRepository.findByTeamWithTeams(3, 'PL');
+
+    expect(matches.map((match) => match.id)).toEqual([400, 401, 402]);
+    expect(matches.map((match) => match.utcDate)).toEqual(
+      [...matches.map((match) => match.utcDate)].sort(),
+    );
+    expect(matches[0]).toMatchObject({
+      homeTeam: { id: 1, name: 'Home FC' },
+      awayTeam: { id: 3, name: 'Third FC' },
+    });
+    expect(matches[1]).toMatchObject({
+      homeTeam: { id: 3, name: 'Third FC' },
+      awayTeam: { id: 2, name: 'Away FC' },
+    });
+  });
+
+  it('excludes another league in findByTeamWithTeams', () => {
+    const ids = matchesRepository.findByTeamWithTeams(1, 'PL').map((match) => match.id);
+
+    expect(ids).toEqual(expect.arrayContaining([100, 201, 200, 400]));
+    expect(ids).not.toContain(300);
+    expect(ids).not.toContain(500);
+  });
+
   it('finds the current matchday (latest started) and the next one', () => {
     // Latest kickoff <= now is matchday 2 (2026-01-12), so next is 3.
     expect(matchesRepository.findMatchdayBounds('BL1', '2026-01-13T00:00:00.000Z')).toEqual({
